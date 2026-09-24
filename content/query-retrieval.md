@@ -44,115 +44,127 @@ These categories can co-occur. The distinction is **what failed**, not simply wh
 
 ## 5.3 Comparison of Existing Literature
 
-Each comparison separates the intervention, its limitation and the conclusion supported. Results from different experimental settings are not a shared leaderboard.
+The six comparisons below explain **what the studies change, what their evidence establishes, and where the conclusion stops**. Numerical results are compared within each paper’s setting, not across incompatible benchmarks.
 
 ### 5.3.1 Query Reformulation and Supervision
 
 #### Paper comparison
 
-Ma uses reader feedback; MaFeRw combines feedback signals; Cao uses preference alignment. RQ-RAG learns refinement; UTRAG incorporates history.
+Ma et al. (2023) train rewriting through reader feedback; RQ-RAG explicitly learns rewriting, decomposition and disambiguation. MaFeRw combines reference-based rewrite, retrieval and answer signals, whereas Cao et al. (2026) construct preferences from self-consistency. UTRAG incorporates conversation history alongside generator adaptation.
 
 #### Analysis
 
-They optimise different objectives; better scores do not prove preserved meaning.
+**The central difference is what the supervision protects.** Reader feedback rewards useful answers, but a knowledgeable reader may compensate for a poor query. Retrieval rewards favour discoverability, but do not guarantee that the original entity, date or negation survives. Self-consistency reduces dependence on reference labels, yet several rewrites can share the same mistaken interpretation.
+
+This explains why fluent rewriting and improved answer scores are insufficient evidence of faithful reformulation. UTRAG also changes the generator, so its full-system gains cannot be assigned to rewriting alone. The relevant comparison needs both component controls and inspection of which question constraints are preserved.
 
 #### Current conclusion
 
-Evaluate constraint preservation alongside task performance.
+Treat rewriting as a **constrained transformation of the information need**. The evidence supports task-aware refinement in tested pipelines; it does not support rewriting every query unconditionally. Evaluate semantic preservation alongside retrieval and answer quality, particularly for ambiguous conversation history.
 
 #### Evidence reviewed
 
-Ma (2023); Chan (2024); Wang (2025); Cao (2026); Zhou & Lin (2026).
+Ma (2023): reader feedback; Chan (2024): refinement operations; Wang (2025): reward design; Cao (2026): preference construction and ablations; Zhou & Lin (2026): multi-turn system analysis.
 
 ### 5.3.2 Retriever Alignment and Bias
 
 #### Paper comparison
 
-HyDE changes the search representation; DVCQR aligns sparse/dense rewrites; Goyal tests retriever bias.
+HyDE generates a hypothetical document as a dense-search representation. DVCQR produces separate sparse- and dense-oriented rewrites. Goyal et al. instead test sensitivity to document features that should not determine relevance. DVCQR raises TopiOCQA MRR from 35.2 to 37.4 with BM25 and from 51.4 to 52.5 with ANCE against its matched-backbone comparator.
 
 #### Analysis
 
-Compatibility with a retriever does not establish resistance to bias.
+**Retriever alignment and resistance to bias are separate objectives.** A rewrite may improve compatibility with a scoring model while remaining vulnerable to its undesirable preferences. DVCQR’s ranking gains therefore do not answer Goyal’s robustness question. Conversely, lower bias scores do not establish complete evidence coverage.
+
+HyDE adds a boundary distinction: its hypothetical text is a search aid, not verified evidence. Inaccurate intermediate details must be assessed by whether they misdirect retrieval; they should not automatically be counted as hallucinations in the final answer.
 
 #### Current conclusion
 
-Test relevance gains and bias robustness separately.
+Use retriever-aware representations where supported, while testing bias separately. None of these retrieval gains directly measures unsupported final claims. The defensible conclusion concerns **better evidence matching under specified conditions**, not a general reduction in hallucination.
 
 #### Evidence reviewed
 
-Gao (2023); Li (2026); Goyal (2026): representation experiments and controlled bias tests.
+Gao (2023): generation–encoding design; Li (2026): Table 1 and retriever-specific evaluation; Goyal (2026): controlled bias and adversarial tests.
 
 ### 5.3.3 Evidence Coverage and Diagnostic Granularity
 
 #### Paper comparison
 
-RAGChecker measures claim coverage; the financial retrieval study distinguishes document/page/chunk retrieval; Leung classifies pipeline errors.
+RAGChecker distinguishes claim recall from context precision. Kobeissi and Langlais compare document, page and chunk retrieval in financial QA. Leung et al. distinguish errors across chunking, retrieval, reranking and generation. Together, they examine coverage at different levels rather than proposing interchangeable metrics.
 
 #### Analysis
 
-Finding the correct document can still miss the necessary fact.
+**Retrieving the right document is weaker than retrieving the required evidence.** A financial report can be relevant while the retrieved passage omits the year, unit or comparison value. RAGChecker’s context precision also counts a chunk as relevant when it supports at least one reference claim; this does not mean every sentence is useful.
+
+Diagnosis must separate evidence absent from the source, damaged during indexing, missed by search and removed during selection. Increasing the number of passages only addresses some of these failures and can add redundancy. Reference-answer incompleteness can also make legitimate alternative evidence appear irrelevant.
 
 #### Current conclusion
 
-Check evidence survival at each stage boundary.
+Assess coverage at the granularity needed to justify the answer, and **locate the first boundary where required information is lost**. Combine metrics with evidence inspection. The financial study illustrates this problem in one domain; it does not establish its prevalence across all RAG systems.
 
 #### Evidence reviewed
 
-Ru (2024); Kobeissi & Langlais (2026); Leung (2026).
+Ru (2024): diagnostic metric definitions; Kobeissi & Langlais (2026): granularity and oracle comparisons; Leung (2026): stage attribution and agreement analysis.
 
 ### 5.3.4 Ranking and Evidence Set Selection
 
 #### Paper comparison
 
-SetR selects complementary passages; Ammann combines decomposition with reranking.
+SetR selects passages that jointly meet information requirements; Ammann et al. expand candidates through decomposition and then rerank. On MultiHopRAG, SetR improves Prec@5 over RankGPT (0.2268 vs 0.1799), yet has lower MRR@10 (0.5742 vs 0.6358). Ammann’s MRR@10 rises from 0.464 for naive RAG to 0.574 with reranking alone and 0.635 with decomposition plus reranking.
 
 #### Analysis
 
-SetR improves Prec@5 over RankGPT (0.2268 vs 0.1799), yet has lower MRR@10 (0.5742 vs 0.6358) on MultiHopRAG.
+**The metrics reward different properties.** MRR rewards the position of the first relevant result; it does not certify coverage of every information requirement. SetR’s contrasting results therefore support evaluating complementary evidence, rather than declaring one method uniformly superior.
+
+Ammann’s component controls also change the interpretation: the full gain cannot be attributed to decomposition when reranking alone produces substantial improvement. Candidate acquisition and selection require separate diagnoses. A selector cannot recover a necessary fact that never entered its candidate pool.
 
 #### Current conclusion
 
-Evaluate collective coverage, not just the first relevant result.
+Evaluate **coverage and redundancy of the selected set**, alongside ranking metrics. Search again when evidence is missing; improve selection when useful candidates are already available. Set-level retrieval metrics remain proxies until the resulting answer is checked for support.
 
 #### Evidence reviewed
 
-Lee (2025), Table 2; Ammann (2025), component controls.
+Lee (2025): Table 2 and matched-setting ablations; Ammann (2025): Table 1 decomposition and reranking controls. Scores are interpreted within each study.
 
 ### 5.3.5 Multi-Hop Dependencies and Iterative Retrieval
 
 #### Paper comparison
 
-MultiHop-RAG benchmarks the problem; ChainRAG restores entities; Q-DREAM manages dependencies; FLARE triggers further retrieval during generation.
+MultiHop-RAG benchmarks multi-evidence questions. ChainRAG restores entities omitted from later subquestions; Q-DREAM combines decomposition, dependency optimisation and dynamic retrieval. FLARE instead triggers searches during generation. ChainRAG entity completion raises second-subquestion Recall@2 from 40.91% to 58.81% on MuSiQue under a matched chunk-size comparison.
 
 #### Analysis
 
-ChainRAG entity completion raises second-subquestion Recall@2 from 40.91% to 58.81% on MuSiQue. Q-DREAM ablations show decomposition alone can hurt.
+**Decomposition only helps if the links between subquestions remain correct.** In Q-DREAM’s 2WikiMQA ablation, retaining decomposition without dependency optimisation or dynamic retrieval gives F1 of 38.1, below 44.7 with all three modules removed. This is evidence against unassisted decomposition in that setup, not against decomposition universally.
+
+An incorrect intermediate entity can redirect later searches, producing a coherent-looking but wrong evidence chain. FLARE addresses emerging information needs during generation, so repeated retrieval should not be equated with multi-hop dependency resolution. More calls do not establish a more complete chain.
 
 #### Current conclusion
 
-Preserve intermediate dependencies; more searches alone are insufficient.
+Track the intermediate fact passed between searches and whether each dependency is supported. Evaluate **complete-chain recovery**, not only final-answer scores or the number of retrieval rounds. ChainRAG’s full-system gains also include its sentence graph and cannot all be assigned to entity completion.
 
 #### Evidence reviewed
 
-Tang & Yang (2024); Zhu (2025); Ye (2025); Jiang (2023).
+Tang & Yang (2024): benchmark; Zhu (2025): Section 4.4 and Table 2; Ye (2025): Table 2 ablations; Jiang (2023): retrieval-trigger design.
 
 ### 5.3.6 Evaluation of Evidence Sufficiency and Hallucination
 
 #### Paper comparison
 
-Sufficient Context tests answerability; RGB tests robustness; RAGTruth labels unsupported output; DRUID tests realistic context use.
+Sufficient Context separates contexts by whether they contain enough information to answer. RGB tests noise robustness, rejection and integration; RAGTruth labels unsupported or contradictory output. DRUID compares real retrieved evidence with synthetic context settings and questions inflated estimates of context utilisation.
 
 #### Analysis
 
-Evidence sufficiency, factual correctness and faithfulness are different properties.
+**Sufficiency, correctness and faithfulness must remain distinct.** An answer can be correct from model memory but unsupported by the supplied evidence. It can faithfully repeat a false source, or misuse sufficient correct evidence. A single answer-accuracy score conceals these differences.
+
+Selective answering creates another confound: fewer wrong answers may reflect more refusals rather than better retrieval. DRUID further limits generalisation from artificial contexts to naturally retrieved material. Controlled experiments isolate mechanisms; realistic retrieval evaluates whether those mechanisms explain practical failures.
 
 #### Current conclusion
 
-Measure supported claims and abstention alongside retrieval scores.
+Report evidence sufficiency, supported-answer quality and the proportion of questions answered together. Attribute hallucination reduction to retrieval only with comparable generators and budgets, plus evidence that output support improved. **Better retrieval is an intermediate achievement, not proof of faithful generation.**
 
 #### Evidence reviewed
 
-Joren (2025); Chen (2024); Niu (2024); Hagström (2025).
+Joren (2025): sufficiency-stratified evaluation; Chen (2024): RGB capability tests; Niu (2024): RAGTruth annotations; Hagström (2025): real-versus-synthetic context comparison.
 
 ## 5.4 Cross-Stage Effects and Hallucination Manifestations
 
@@ -164,11 +176,21 @@ Joren (2025); Chen (2024); Niu (2024); Hagström (2025).
 
 These are **possible pathways, not inevitable outcomes**. Sufficient evidence can still be misused; insufficient evidence can lead to safe refusal. Support: RGB, RAGTruth, RAGChecker and Sufficient Context.
 
+**Attribution rule:** If selected evidence was complete but context compression removed a qualification, the primary loss is downstream of retrieval. If sufficient evidence reached the prompt but the answer contradicts it, investigate evidence use or reasoning. This prevents the taxonomy from assigning every wrong answer to the retriever.
+
 ## 5.5 Section Conclusion
 
-**Judge retrieval by whether the selected evidence jointly answers the intended question.** Demonstrate reduced hallucination separately through supported-answer evaluation.
+**The main finding is that retrieval should be judged by collective evidence sufficiency for the intended question.** The review supports three connected judgements:
 
-**Open question:** Which retrieval improvements reduce unsupported claims when the generator, retrieval budget and proportion of questions answered are comparable?
+- **Preserve the target.** Query refinement can improve retrieval, but gains are difficult to interpret when the rewrite changes the entity, constraint or relation being asked about.
+- **Recover and retain complementary support.** Coverage, ranking and set selection solve different problems. The SetR metric contrast and Ammann component controls show why a single retrieval score cannot explain all improvements.
+- **Verify the downstream claim.** ChainRAG and Q-DREAM explain how evidence chains improve; Sufficient Context, RGB, RAGTruth and DRUID show why this still does not establish fewer unsupported answers.
+
+The contribution of this taxonomy is to connect each failure to a diagnostic decision: clarify the request, repair its representation, search for missing facts, select complementary candidates or verify intermediate dependencies. These remedies are not interchangeable, and several failures can coexist.
+
+**The main evidence gap is causal attribution.** Many studies demonstrate retrieval or answer-score gains; fewer directly isolate whether a retrieval intervention reduces unsupported claims while keeping the generator, budget and answering coverage comparable. Cross-paper scores should therefore not be pooled into a common ranking.
+
+**Next research questions:** Can systems identify unmet evidence requirements before generation? Can they distinguish missing candidates from poor selection? Do the resulting improvements survive naturally occurring ambiguity and multi-hop dependencies in high-stakes domains?
 
 ## References
 
