@@ -2,219 +2,170 @@ Owner: Zhixuan Li
 Status: In progress
 Layout: stage-review
 
-**Main finding:** Better retrieval can provide stronger evidence, but does not by itself prevent hallucination. This review identifies **seven failure mechanisms** across **22 papers**.
+**Main finding:** Query and retrieval failures can lead to hallucination by **directing evidence towards the wrong interpretation, leaving essential facts unsupported, or carrying misleading information into subsequent reasoning**. Hallucination emerges when the generator treats these flawed evidence conditions as sufficient grounds for a claim.
+
+**Reviewed corpus: 25 papers.** The synthesis separates upstream failure evidence, downstream output experiments, and diagnostic studies. Retrieval failure is a contributing cause, not a guarantee of hallucination.
 
 ## 5.1 Stage Role and Boundary
 
-**Question → query formulation → retrieval and selection → evidence for generation.**
+This stage translates an information need into searches and selects evidence for generation. Its causal role is to determine **which entities, conditions and facts the answer can be grounded in**.
 
-This stage determines what evidence reaches the generator (Lewis et al., 2020). Missing source information is upstream; losing evidence during context construction or misusing it during generation is downstream. Diagnose where evidence disappears before assigning blame.
+RAGTruth identifies unsupported or contradictory output [23]; RAGChecker and Leung et al. distinguish pipeline errors [24, 25]. These are different levels of analysis: a missing passage is a retrieval failure; inventing the missing fact is an output failure. A valid answer to another interpretation may be unhelpful without being hallucinated.
+
+**Boundary:** evidence absent from the source/index belongs upstream; evidence lost during context construction belongs downstream. Repeating a false source can be factually wrong while faithful to that source. The pathways below therefore distinguish evidence acquisition from how the generator uses it.
 
 ## 5.2 Major Failure Mechanisms
 
-These categories can co-occur. The distinction is **what failed**, not simply whether the final answer was wrong.
+The seven mechanisms can overlap. Missing evidence describes an outcome; mismatch, ranking and broken dependencies can explain how it arose. False premises are treated explicitly within query validity, rather than conflated with ambiguity.
 
 ### 5.2.1 Ambiguous or Incomplete Queries
 
-**Unclear information need.** The entity, time period or constraint is unspecified. Check whether conversation history or clarification resolves it.
+**Paper comparison.** CondAmbigQA studies missing conditions; AmbigDocs examines same-name entities; Tree of Clarifications explores alternative interpretations [3–5]. Qin et al. address a different problem: false premises [6].
+
+**Analysis.** An unspecified entity or time period lets the system silently choose an interpretation. Retrieved documents can then support the wrong target, or supply attributes from different entities that the generator merges. A false premise instead presupposes an event or relation that may not exist.
+
+**Current conclusion.** The hallucination pathway is **unverified interpretation → misapplied or merged evidence → unsupported attribution**. Ambiguity alone is not hallucination; the decisive error is presenting an unjustified assumption or fabricated combination as fact.
+
+**Evidence reviewed.** Conditional-answer evaluation [3]; entity-merging output categories [4]; clarification interventions [5]; premise verification [6]. Watson et al. provide observational query-risk evidence, not a RAG causal experiment [1].
 
 ### 5.2.2 Query Reformulation Problems
 
-**Meaning changes during rewriting.** A rewrite drops a condition or adds an unsupported assumption. Compare it with the original question.
+**Paper comparison.** Abe et al. examine expansion failures on unfamiliar and ambiguous queries; Goyal et al. test rewriting under retriever biases; RaDIO studies queries formed during generation [2, 7, 22].
+
+**Analysis.** Expansion can add an incorrect detail or privilege a popular interpretation. The resulting search may retrieve convincing evidence for the rewritten question while failing to support the original one. In iterative retrieval, a query that misses the current information gap can leave that gap unresolved.
+
+**Current conclusion.** Reformulation can introduce **semantic drift before evidence is collected**. A downstream answer becomes unsupported when it treats the altered assumption as established. The cited retrieval gains or losses do not themselves measure this final transition.
+
+**Evidence reviewed.** Expansion comparisons across retrievers [2]; controlled bias tests [7]; query/trigger component experiments [22].
 
 ### 5.2.3 Query–Document Mismatch
 
-**The request is clear, but matching fails.** Vocabulary or representation differences prevent retrieval of suitable indexed evidence.
+**Paper comparison.** Abe et al. show query-dependent retrieval failures; Goyal et al. examine sensitivity to document features; AmbigDocs isolates confusion between same-name entities [2, 7, 4].
+
+**Analysis.** Matching can favour surface similarity or a familiar entity over the relation actually requested. Evidence can appear relevant while referring to another person, period or condition. If generation ignores this scope difference, a real fact is attributed to the wrong target.
+
+**Current conclusion.** Mismatch can produce **plausible but wrongly attributed answers**, not merely empty results. These studies support particular forms of misalignment; they do not establish that every vocabulary or embedding mismatch produces hallucination.
+
+**Evidence reviewed.** Retrieval comparisons [2, 7]; entity-level output analysis [4]. AmbigDocs mainly supplies gold documents, so its reader errors cannot all be assigned to the retriever.
 
 ### 5.2.4 Missing Relevant Evidence
 
-**Required evidence never enters the candidate set.** First confirm that it exists in the searchable index.
+**Paper comparison.** Park and Lee manipulate imperfect retrieval; RGB tests rejection when evidence cannot answer; Sufficient Context separates sufficient from insufficient contexts [8, 9, 13]. DRUID tests context utilisation under more realistic retrieved evidence [14].
+
+**Analysis.** A missing supporting fact leaves a claim ungrounded. The model may supply a plausible completion from prior knowledge or pattern matching, producing a fluent answer whose certainty exceeds the evidence. Alternatively, it may correctly refuse or answer only the supported part.
+
+**Current conclusion.** The causal pathway requires two conditions: **an evidence gap and a decision to answer beyond it**. Absence of evidence alone is insufficient to explain hallucination.
+
+**Evidence reviewed.** Unanswerable-context output categories [8, 9]; sufficiency-stratified responses [13]; naturally retrieved context evaluation [14].
 
 ### 5.2.5 Irrelevant Retrieved Passages
 
-**Unhelpful evidence enters the results.** Topical similarity can conceal a wrong entity or period; extra passages may distract the generator.
+**Paper comparison.** Yoran et al. examine retrieval-induced errors; Cuconasu et al. distinguish distracting from random documents; Hong et al. test counterfactual noise [10–12].
+
+**Analysis.** A passage sharing entities or topic words can supply an attractive but inapplicable answer. The generator may copy its entity or relation into the response. This differs from arbitrary noise: random material sometimes improves accuracy in Cuconasu et al.'s settings, so irrelevance is not uniformly harmful.
+
+**Current conclusion.** The risk depends on **how distractors compete with or impersonate supporting evidence**, not simply their number. False source content also implicates source quality and downstream trust, not query formulation alone.
+
+**Evidence reviewed.** Retrieval/no-retrieval comparisons and selected-case error analysis [10]; controlled noise types [11]; misleading-context experiments [12].
 
 ### 5.2.6 Ranking and Evidence Selection Failures
 
-**Useful candidates are available but poorly selected.** Redundant passages displace complementary facts. High individual relevance does not guarantee a sufficient evidence set.
+**Paper comparison.** SetR examines complementary evidence selection; MultiHop-RAG tests questions requiring multiple facts; RAGChecker separates claim coverage from context quality [16, 17, 24].
+
+**Analysis.** Ranking individually relevant passages can repeatedly select the same fact while omitting a necessary qualifier or comparison value. The evidence appears abundant but is incomplete. A generator can then generalise beyond a supported condition or invent the missing relationship.
+
+**Current conclusion.** Ranking contributes through **selective omission and misleading evidence composition**. This differs from candidate-generation failure: useful evidence may exist among candidates but never reach the selected set.
+
+**Evidence reviewed.** Set-selection comparisons [16]; multi-evidence retrieval evaluation [17]; diagnostic metrics [24]. These establish coverage problems more directly than final hallucination causation.
 
 ### 5.2.7 Multi-Hop Retrieval Failures
 
-**The evidence chain breaks.** A missing or incorrect intermediate entity redirects later searches. Check dependencies between retrieval steps.
+**Paper comparison.** ChainRAG addresses lost intermediate entities; Q-DREAM examines decomposition and dependencies; MARCH combines ambiguity with multi-hop inference [18–20]. HopRefusalBench tests unanswerable chains and hallucinated completion [21].
+
+**Analysis.** An incorrect or missing bridge entity changes the next query. Later searches may retrieve internally consistent evidence about the wrong path, reinforcing the initial mistake. When a required hop cannot be supported, continued answering may fabricate the missing connection.
+
+**Current conclusion.** Multi-hop hallucination can arise through **error propagation or unsupported chain completion**. Additional retrieval does not necessarily repair a path already redirected by a mistaken intermediate assumption.
+
+**Evidence reviewed.** Entity-completion and dependency ablations [18, 19]; ambiguity/clarification evaluation [20]; refusal and search-trajectory analysis [21]. The last is a 2026 preprint.
 
 ## 5.3 Comparison of Existing Literature
 
-The six comparisons below explain **what the studies change, what their evidence establishes, and where the conclusion stops**. Numerical results are compared within each paper’s setting, not across incompatible benchmarks.
-
-### 5.3.1 Query Reformulation and Supervision
-
 #### Paper comparison
 
-Ma et al. (2023) train rewriting through reader feedback; RQ-RAG explicitly learns rewriting, decomposition and disambiguation. MaFeRw combines reference-based rewrite, retrieval and answer signals, whereas Cao et al. (2026) construct preferences from self-consistency. UTRAG incorporates conversation history alongside generator adaptation.
+| Evidence approach | Representative studies | What it establishes—and what it does not |
+|---|---|---|
+| Query variation and reformulation | Watson; Abe; Goyal [1, 2, 7] | Query-associated risk and retrieval drift; not a complete query-to-hallucination causal estimate. |
+| Ambiguity and premise analysis | CondAmbigQA; AmbigDocs; Qin; MARCH [3, 4, 6, 20] | Missing conditions, entity fusion and invalid assumptions are distinct mechanisms; alternative valid answers are not automatically hallucinations. |
+| Manipulated retrieval/context | Park and Lee; RGB; Yoran; Cuconasu; Hong [8–12] | Stronger evidence about responses to particular evidence defects; synthetic settings do not establish real-world prevalence. |
+| Sufficiency and realistic context | Sufficient Context; DRUID; FaithEval [13–15] | Whether evidence permits an answer and how models respond; insufficient context does not identify which upstream component failed. |
+| Selection and multi-hop controls | SetR; MultiHop-RAG; ChainRAG; Q-DREAM; HopRefusalBench [16–19, 21] | Missing complementary facts and broken dependencies; most answer-score gains are not claim-level hallucination measurements. |
 
 #### Analysis
 
-**The central difference is what the supervision protects.** Reader feedback rewards useful answers, but a knowledgeable reader may compensate for a poor query. Retrieval rewards favour discoverability, but do not guarantee that the original entity, date or negation survives. Self-consistency reduces dependence on reference labels, yet several rewrites can share the same mistaken interpretation.
+**The studies measure different links in the causal chain.** An expansion experiment can show why relevant evidence disappears without observing hallucination. An unanswerable-context experiment can show unsupported answering without explaining why retrieval missed the evidence. Their findings are complementary, but cannot be pooled into a common “hallucination reduction” ranking.
 
-This explains why fluent rewriting and improved answer scores are insufficient evidence of faithful reformulation. UTRAG also changes the generator, so its full-system gains cannot be assigned to rewriting alone. The relevant comparison needs both component controls and inspection of which question constraints are preserved.
-
-#### Current conclusion
-
-Treat rewriting as a **constrained transformation of the information need**. The evidence supports task-aware refinement in tested pipelines; it does not support rewriting every query unconditionally. Evaluate semantic preservation alongside retrieval and answer quality, particularly for ambiguous conversation history.
-
-#### Evidence reviewed
-
-Ma (2023): reader feedback; Chan (2024): refinement operations; Wang (2025): reward design; Cao (2026): preference construction and ablations; Zhou & Lin (2026): multi-turn system analysis.
-
-### 5.3.2 Retriever Alignment and Bias
-
-#### Paper comparison
-
-HyDE generates a hypothetical document as a dense-search representation. DVCQR produces separate sparse- and dense-oriented rewrites. Goyal et al. instead test sensitivity to document features that should not determine relevance. DVCQR raises TopiOCQA MRR from 35.2 to 37.4 with BM25 and from 51.4 to 52.5 with ANCE against its matched-backbone comparator.
-
-#### Analysis
-
-**Retriever alignment and resistance to bias are separate objectives.** A rewrite may improve compatibility with a scoring model while remaining vulnerable to its undesirable preferences. DVCQR’s ranking gains therefore do not answer Goyal’s robustness question. Conversely, lower bias scores do not establish complete evidence coverage.
-
-HyDE adds a boundary distinction: its hypothetical text is a search aid, not verified evidence. Inaccurate intermediate details must be assessed by whether they misdirect retrieval; they should not automatically be counted as hallucinations in the final answer.
+Two comparisons constrain the interpretation. AmbigDocs observes entity confusion even with supplied gold documents, showing that query ambiguity also affects evidence use. Cuconasu et al.'s noise results challenge any blanket claim that more irrelevant passages cause more hallucination. The explanation must specify the document's misleading content and the model's response to it.
 
 #### Current conclusion
 
-Use retriever-aware representations where supported, while testing bias separately. None of these retrieval gains directly measures unsupported final claims. The defensible conclusion concerns **better evidence matching under specified conditions**, not a general reduction in hallucination.
+The strongest synthesis connects **a demonstrated upstream defect with an independently observed output behaviour**, while marking the connection as synthesis where no single experiment isolates the whole pathway. Controlled failures explain mechanisms; naturally retrieved contexts test their practical relevance.
 
 #### Evidence reviewed
 
-Gao (2023): generation–encoding design; Li (2026): Table 1 and retriever-specific evaluation; Goyal (2026): controlled bias and adversarial tests.
-
-### 5.3.3 Evidence Coverage and Diagnostic Granularity
-
-#### Paper comparison
-
-RAGChecker distinguishes claim recall from context precision. Kobeissi and Langlais compare document, page and chunk retrieval in financial QA. Leung et al. distinguish errors across chunking, retrieval, reranking and generation. Together, they examine coverage at different levels rather than proposing interchangeable metrics.
-
-#### Analysis
-
-**Retrieving the right document is weaker than retrieving the required evidence.** A financial report can be relevant while the retrieved passage omits the year, unit or comparison value. RAGChecker’s context precision also counts a chunk as relevant when it supports at least one reference claim; this does not mean every sentence is useful.
-
-Diagnosis must separate evidence absent from the source, damaged during indexing, missed by search and removed during selection. Increasing the number of passages only addresses some of these failures and can add redundancy. Reference-answer incompleteness can also make legitimate alternative evidence appear irrelevant.
-
-#### Current conclusion
-
-Assess coverage at the granularity needed to justify the answer, and **locate the first boundary where required information is lost**. Combine metrics with evidence inspection. The financial study illustrates this problem in one domain; it does not establish its prevalence across all RAG systems.
-
-#### Evidence reviewed
-
-Ru (2024): diagnostic metric definitions; Kobeissi & Langlais (2026): granularity and oracle comparisons; Leung (2026): stage attribution and agreement analysis.
-
-### 5.3.4 Ranking and Evidence Set Selection
-
-#### Paper comparison
-
-SetR selects passages that jointly meet information requirements; Ammann et al. expand candidates through decomposition and then rerank. On MultiHopRAG, SetR improves Prec@5 over RankGPT (0.2268 vs 0.1799), yet has lower MRR@10 (0.5742 vs 0.6358). Ammann’s MRR@10 rises from 0.464 for naive RAG to 0.574 with reranking alone and 0.635 with decomposition plus reranking.
-
-#### Analysis
-
-**The metrics reward different properties.** MRR rewards the position of the first relevant result; it does not certify coverage of every information requirement. SetR’s contrasting results therefore support evaluating complementary evidence, rather than declaring one method uniformly superior.
-
-Ammann’s component controls also change the interpretation: the full gain cannot be attributed to decomposition when reranking alone produces substantial improvement. Candidate acquisition and selection require separate diagnoses. A selector cannot recover a necessary fact that never entered its candidate pool.
-
-#### Current conclusion
-
-Evaluate **coverage and redundancy of the selected set**, alongside ranking metrics. Search again when evidence is missing; improve selection when useful candidates are already available. Set-level retrieval metrics remain proxies until the resulting answer is checked for support.
-
-#### Evidence reviewed
-
-Lee (2025): Table 2 and matched-setting ablations; Ammann (2025): Table 1 decomposition and reranking controls. Scores are interpreted within each study.
-
-### 5.3.5 Multi-Hop Dependencies and Iterative Retrieval
-
-#### Paper comparison
-
-MultiHop-RAG benchmarks multi-evidence questions. ChainRAG restores entities omitted from later subquestions; Q-DREAM combines decomposition, dependency optimisation and dynamic retrieval. FLARE instead triggers searches during generation. ChainRAG entity completion raises second-subquestion Recall@2 from 40.91% to 58.81% on MuSiQue under a matched chunk-size comparison.
-
-#### Analysis
-
-**Decomposition only helps if the links between subquestions remain correct.** In Q-DREAM’s 2WikiMQA ablation, retaining decomposition without dependency optimisation or dynamic retrieval gives F1 of 38.1, below 44.7 with all three modules removed. This is evidence against unassisted decomposition in that setup, not against decomposition universally.
-
-An incorrect intermediate entity can redirect later searches, producing a coherent-looking but wrong evidence chain. FLARE addresses emerging information needs during generation, so repeated retrieval should not be equated with multi-hop dependency resolution. More calls do not establish a more complete chain.
-
-#### Current conclusion
-
-Track the intermediate fact passed between searches and whether each dependency is supported. Evaluate **complete-chain recovery**, not only final-answer scores or the number of retrieval rounds. ChainRAG’s full-system gains also include its sentence graph and cannot all be assigned to entity completion.
-
-#### Evidence reviewed
-
-Tang & Yang (2024): benchmark; Zhu (2025): Section 4.4 and Table 2; Ye (2025): Table 2 ablations; Jiang (2023): retrieval-trigger design.
-
-### 5.3.6 Evaluation of Evidence Sufficiency and Hallucination
-
-#### Paper comparison
-
-Sufficient Context separates contexts by whether they contain enough information to answer. RGB tests noise robustness, rejection and integration; RAGTruth labels unsupported or contradictory output. DRUID compares real retrieved evidence with synthetic context settings and questions inflated estimates of context utilisation.
-
-#### Analysis
-
-**Sufficiency, correctness and faithfulness must remain distinct.** An answer can be correct from model memory but unsupported by the supplied evidence. It can faithfully repeat a false source, or misuse sufficient correct evidence. A single answer-accuracy score conceals these differences.
-
-Selective answering creates another confound: fewer wrong answers may reflect more refusals rather than better retrieval. DRUID further limits generalisation from artificial contexts to naturally retrieved material. Controlled experiments isolate mechanisms; realistic retrieval evaluates whether those mechanisms explain practical failures.
-
-#### Current conclusion
-
-Report evidence sufficiency, supported-answer quality and the proportion of questions answered together. Attribute hallucination reduction to retrieval only with comparable generators and budgets, plus evidence that output support improved. **Better retrieval is an intermediate achievement, not proof of faithful generation.**
-
-#### Evidence reviewed
-
-Joren (2025): sufficiency-stratified evaluation; Chen (2024): RGB capability tests; Niu (2024): RAGTruth annotations; Hagström (2025): real-versus-synthetic context comparison.
+All 25 papers inform the section. Tree of Clarifications [5] and RaDIO [22] provide intervention evidence; RAGTruth, RAGChecker and Leung et al. [23–25] ground output definitions and stage attribution. The corpus is a targeted, question-led selection, not an exhaustive systematic review.
 
 ## 5.4 Cross-Stage Effects and Hallucination Manifestations
 
-| Retrieval condition | Possible downstream manifestation | Boundary to check |
+| Upstream failure | Evidence reaching generation | Possible hallucination manifestation |
 |---|---|---|
-| Missing evidence | Unsupported completion | Did the model abstain or fill the gap? |
-| Irrelevant evidence | Wrong-entity claims or unsupported attribution | Was the passage applied beyond its scope? |
-| Incomplete evidence chain | Misleading comparison or synthesis | Were all required facts retained and connected? |
+| Ambiguity or reformulation drift | Material for the wrong entity or condition | Wrong attribution or fusion of different entities' facts |
+| False premise | No valid support for the assumed event/relation | Fabricated explanation that accepts the premise |
+| Missing evidence or poor selection | Partial support with a crucial fact absent | Unsupported completion or overgeneralisation |
+| Misleading passage | Plausible but inapplicable/false content | Incorrect claim adopted from retrieved material |
+| Broken multi-hop dependency | Wrong bridge or incomplete chain | Invented connection or propagated intermediate error |
 
-These are **possible pathways, not inevitable outcomes**. Sufficient evidence can still be misused; insufficient evidence can lead to safe refusal. Support: RGB, RAGTruth, RAGChecker and Sufficient Context.
+**Analysis and current conclusion.** These pathways combine evidence defects with generator behaviour: accepting assumptions, confusing scope, trusting misleading content or filling gaps. Safe refusal can interrupt them. Conversely, sufficient evidence can still be misused. FaithEval and RAGTruth also require a distinction between factual error and unfaithfulness to supplied context [15, 23].
 
-**Attribution rule:** If selected evidence was complete but context compression removed a qualification, the primary loss is downstream of retrieval. If sufficient evidence reached the prompt but the answer contradicts it, investigate evidence use or reasoning. This prevents the taxonomy from assigning every wrong answer to the retriever.
+**Evidence reviewed.** The comparison draws on entity/premise studies [4, 6], imperfect-context experiments [8–15], multi-hop analysis [18–21] and stage diagnostics [24, 25]. If the selected evidence was sufficient but later compressed incorrectly, the primary loss belongs to context construction rather than retrieval.
 
 ## 5.5 Section Conclusion
 
-**The main finding is that retrieval should be judged by collective evidence sufficiency for the intended question.** The review supports three connected judgements:
+**Query and retrieval failures contribute to hallucination by changing what the answer appears to be supported by.** Three recurring pathways emerge:
 
-- **Preserve the target.** Query refinement can improve retrieval, but gains are difficult to interpret when the rewrite changes the entity, constraint or relation being asked about.
-- **Recover and retain complementary support.** Coverage, ranking and set selection solve different problems. The SetR metric contrast and Ammann component controls show why a single retrieval score cannot explain all improvements.
-- **Verify the downstream claim.** ChainRAG and Q-DREAM explain how evidence chains improve; Sufficient Context, RGB, RAGTruth and DRUID show why this still does not establish fewer unsupported answers.
+- **Wrong target:** ambiguity, false assumptions or reformulation drift lead the system to answer about the wrong entity, condition or relation.
+- **Missing support:** retrieval and selection omit a necessary fact; the generator fills the gap instead of limiting its claim.
+- **Error propagation:** misleading passages or incorrect bridge entities enter later reasoning and become part of a coherent-looking but unsupported answer.
 
-The contribution of this taxonomy is to connect each failure to a diagnostic decision: clarify the request, repair its representation, search for missing facts, select complementary candidates or verify intermediate dependencies. These remedies are not interchangeable, and several failures can coexist.
+The central causal judgement is therefore **flawed evidence acquisition interacting with unsupported inference**. Query defects are neither harmless wording issues nor sufficient causes by themselves. Their consequences depend on whether the generator recognises uncertainty, preserves entity boundaries and stops when a claim lacks support.
 
-**The main evidence gap is causal attribution.** Many studies demonstrate retrieval or answer-score gains; fewer directly isolate whether a retrieval intervention reduces unsupported claims while keeping the generator, budget and answering coverage comparable. Cross-paper scores should therefore not be pooled into a common ranking.
-
-**Next research questions:** Can systems identify unmet evidence requirements before generation? Can they distinguish missing candidates from poor selection? Do the resulting improvements survive naturally occurring ambiguity and multi-hop dependencies in high-stakes domains?
+**Open evidence gap:** relatively few studies trace a controlled query defect through retrieved passages to manually verified hallucinated claims. This limits estimates of how often each mechanism causes hallucination, even when the mechanism itself is well motivated. In high-stakes settings, a key question is which missing conditions or intermediate facts most often turn apparently supported answers into false claims.
 
 ## References
 
-The 22 papers below form the reviewed corpus. Entries are listed alphabetically; the text uses author–year citations.
+The 25-paper corpus below uses numbered citations. Publication years follow the published version where available; HopRefusalBench is a preprint.
 
-1. **Ammann et al. (2025).** [Question Decomposition for Retrieval-Augmented Generation](https://aclanthology.org/2025.acl-srw.32/). ACL Student Research Workshop.
-2. **Cao et al. (2026).** [Multi-Faceted Self-Consistent Preference Alignment for Query Rewriting in Conversational Search](https://aclanthology.org/2026.findings-acl.638/). Findings of ACL.
-3. **Chan et al. (2024).** [RQ-RAG: Learning to Refine Queries for Retrieval Augmented Generation](https://arxiv.org/abs/2404.00610). COLM. arXiv:2404.00610.
-4. **Chen et al. (2024).** [Benchmarking Large Language Models in Retrieval-Augmented Generation](https://doi.org/10.1609/aaai.v38i16.29728). Proceedings of the AAAI Conference on Artificial Intelligence.
-5. **Gao et al. (2023).** [Precise Zero-Shot Dense Retrieval without Relevance Labels](https://aclanthology.org/2023.acl-long.99/). ACL.
-6. **Goyal et al. (2026).** [Masking or Mitigating? Deconstructing the Impact of Query Rewriting on Retriever Biases in RAG](https://aclanthology.org/2026.findings-acl.414/). Findings of ACL.
-7. **Hagström et al. (2025).** [A Reality Check on Context Utilisation for Retrieval-Augmented Generation](https://aclanthology.org/2025.acl-long.968/). ACL.
-8. **Jiang et al. (2023).** [Active Retrieval Augmented Generation](https://aclanthology.org/2023.emnlp-main.495/). EMNLP.
-9. **Joren et al. (2025).** [Sufficient Context: A New Lens on Retrieval Augmented Generation Systems](https://arxiv.org/abs/2411.06037). ICLR. arXiv:2411.06037.
-10. **Kobeissi & Langlais (2026).** [Decomposing Retrieval Failures in RAG for Long-Document Financial Question Answering](https://arxiv.org/abs/2602.17981). arXiv preprint.
-11. **Lee et al. (2025).** [Shifting from Ranking to Set Selection for Retrieval Augmented Generation](https://aclanthology.org/2025.acl-long.861/). ACL.
-12. **Leung et al. (2026).** [Classifying and Addressing the Diversity of Errors in Retrieval-Augmented Generation Systems](https://aclanthology.org/2026.eacl-long.147/). EACL.
-13. **Lewis et al. (2020).** [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/abs/2005.11401). Advances in Neural Information Processing Systems.
-14. **Li et al. (2026).** [DVCQR: Dual-View Conversational Query Rewriting with Stage-wise Reinforcement Learning](https://aclanthology.org/2026.acl-long.1054/). ACL.
-15. **Ma et al. (2023).** [Query Rewriting in Retrieval-Augmented Large Language Models](https://aclanthology.org/2023.emnlp-main.322/). EMNLP.
-16. **Niu et al. (2024).** [RAGTruth: A Hallucination Corpus for Developing Trustworthy Retrieval-Augmented Language Models](https://aclanthology.org/2024.acl-long.585/). ACL.
-17. **Ru et al. (2024).** [RAGChecker: A Fine-grained Framework for Diagnosing Retrieval-Augmented Generation](https://arxiv.org/abs/2408.08067). Advances in Neural Information Processing Systems.
-18. **Tang & Yang (2024).** [MultiHop-RAG: Benchmarking Retrieval-Augmented Generation for Multi-Hop Queries](https://arxiv.org/abs/2401.15391). COLM. arXiv:2401.15391.
-19. **Wang et al. (2025).** [MaFeRw: Query Rewriting with Multi-Aspect Feedbacks for Retrieval-Augmented Large Language Models](https://doi.org/10.1609/aaai.v39i24.34732). Proceedings of the AAAI Conference on Artificial Intelligence.
-20. **Ye et al. (2025).** [Optimizing Question Semantic Space for Dynamic Retrieval-Augmented Multi-hop Question Answering](https://aclanthology.org/2025.acl-long.871/). ACL.
-21. **Zhou & Lin (2026).** [UTRAG at SemEval-2026 Task 8: History-Aware Query Rewriting and LoRA-Finetuned Generation for Multi-Turn RAG](https://aclanthology.org/2026.semeval-1.237/). SemEval.
-22. **Zhu et al. (2025).** [Mitigating Lost-in-Retrieval Problems in Retrieval Augmented Multi-Hop Question Answering](https://aclanthology.org/2025.acl-long.1089/). ACL.
+1. **Watson et al. (2026).** [What Makes a Good Query? Measuring the Impact of Human-Confusing Linguistic Features on LLM Performance](https://aclanthology.org/2026.findings-eacl.251/). Findings of EACL 2026.
+2. **Abe et al. (2025).** [LLM-based Query Expansion Fails for Unfamiliar and Ambiguous Queries](https://arxiv.org/abs/2505.12694). SIGIR 2025.
+3. **Li et al. (2025).** [CondAmbigQA: A Benchmark and Dataset for Conditional Ambiguous Question Answering](https://aclanthology.org/2025.emnlp-main.115/). EMNLP 2025.
+4. **Lee et al. (2024).** [AmbigDocs: Reasoning across Documents on Different Entities under the Same Name](https://arxiv.org/abs/2404.12447). COLM 2024.
+5. **Kim et al. (2023).** [Tree of Clarifications: Answering Ambiguous Questions with Retrieval-Augmented Large Language Models](https://aclanthology.org/2023.emnlp-main.63/). EMNLP 2023.
+6. **Qin et al. (2026).** [Don’t Let It Hallucinate: Premise Verification via Retrieval-Augmented Logical Reasoning](https://arxiv.org/abs/2504.06438). TMLR 2026 (initial preprint 2025).
+7. **Goyal et al. (2026).** [Masking or Mitigating? Deconstructing the Impact of Query Rewriting on Retriever Biases in RAG](https://aclanthology.org/2026.findings-acl.414/). Findings of ACL 2026.
+8. **Park and Lee (2024).** [Toward Robust RALMs: Revealing the Impact of Imperfect Retrieval on Retrieval-Augmented Language Models](https://aclanthology.org/2024.tacl-1.91/). TACL 2024.
+9. **Chen et al. (2024).** [Benchmarking Large Language Models in Retrieval-Augmented Generation (RGB)](https://ojs.aaai.org/index.php/AAAI/article/view/29728). AAAI 2024.
+10. **Yoran et al. (2024).** [Making Retrieval-Augmented Language Models Robust to Irrelevant Context](https://arxiv.org/abs/2310.01558). ICLR 2024.
+11. **Cuconasu et al. (2024).** [The Power of Noise: Redefining Retrieval for RAG Systems](https://arxiv.org/abs/2401.14887). SIGIR 2024.
+12. **Hong et al. (2024).** [Why So Gullible? Enhancing the Robustness of Retrieval-Augmented Models against Counterfactual Noise](https://aclanthology.org/2024.findings-naacl.159/). Findings of NAACL 2024.
+13. **Joren et al. (2025).** [Sufficient Context: A New Lens on Retrieval Augmented Generation Systems](https://arxiv.org/abs/2411.06037). ICLR 2025.
+14. **Hagström et al. (2025).** [A Reality Check on Context Utilisation for Retrieval-Augmented Generation (DRUID)](https://aclanthology.org/2025.acl-long.968/). ACL 2025.
+15. **Ming et al. (2025).** [FaithEval: Can Your Language Model Stay Faithful to Context, Even If “The Moon is Made of Marshmallows”](https://arxiv.org/abs/2410.03727). ICLR 2025 (initial preprint 2024).
+16. **Lee et al. (2025).** [Shifting from Ranking to Set Selection for Retrieval Augmented Generation (SetR)](https://aclanthology.org/2025.acl-long.861/). ACL 2025.
+17. **Tang and Yang (2024).** [MultiHop-RAG: Benchmarking Retrieval-Augmented Generation for Multi-Hop Queries](https://arxiv.org/abs/2401.15391). COLM 2024.
+18. **Zhu et al. (2025).** [Mitigating Lost-in-Retrieval Problems in Retrieval Augmented Multi-Hop Question Answering (ChainRAG)](https://aclanthology.org/2025.acl-long.1089/). ACL 2025.
+19. **Ye et al. (2025).** [Optimizing Question Semantic Space for Dynamic Retrieval-Augmented Multi-hop Question Answering (Q-DREAM)](https://aclanthology.org/2025.acl-long.871/). ACL 2025.
+20. **Park et al. (2026).** [MARCH: Evaluating the Intersection of Ambiguity Interpretation and Multi-hop Inference](https://aclanthology.org/2026.findings-acl.1352/). Findings of ACL 2026.
+21. **Xie et al. (2026).** [HopRefusalBench: Diagnosing Refusal Failures in Search-Augmented Agents for Multi-Hop Reasoning](https://arxiv.org/abs/2608.01358). arXiv preprint, August 2026.
+22. **Zhu et al. (2025).** [RaDIO: Real-Time Hallucination Detection with Contextual Index Optimized Query Formulation for Dynamic Retrieval Augmented Generation](https://ojs.aaai.org/index.php/AAAI/article/view/34809). AAAI 2025.
+23. **Niu et al. (2024).** [RAGTruth: A Hallucination Corpus for Developing Trustworthy Retrieval-Augmented Language Models](https://aclanthology.org/2024.acl-long.585/). ACL 2024.
+24. **Ru et al. (2024).** [RAGChecker: A Fine-grained Framework for Diagnosing Retrieval-Augmented Generation](https://arxiv.org/abs/2408.08067). NeurIPS 2024, Datasets and Benchmarks.
+25. **Leung et al. (2026).** [Classifying and Addressing the Diversity of Errors in Retrieval-Augmented Generation Systems](https://aclanthology.org/2026.eacl-long.147/). EACL 2026.
