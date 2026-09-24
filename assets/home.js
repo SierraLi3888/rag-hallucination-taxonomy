@@ -8,7 +8,7 @@
   let activeArea=null, expanded=new Set(), selected=null, zoom=1, dimensions={width:920,height:540}, positions=new Map();
   const palette=['#8a5975','#8b7138','#4d7896','#247f80','#73679a','#677e48'];
   const width = n => n.level===0?180:n.level===1?210:n.level===2?220:170;
-  const nodeHeight=n=>n.level===1?100:n.level===0?76:n.level===2?64:48;
+  const nodeHeight=n=>n.level===1?100:n.level===0?76:n.level===2?64:84;
   function visibleChildren(n) {return expanded.has(n.id)?n.children:[];}
   function measure(n) {const children=visibleChildren(n);n.span=children.length?Math.max(nodeHeight(n),children.reduce((sum,c)=>sum+measure(c),0)+(children.length-1)*20):nodeHeight(n);return n.span;}
   function setZoom(z) {zoom=Math.max(.5,Math.min(1.7,z));canvas.style.transform=`scale(${zoom})`;sizing.style.width=`${dimensions.width*zoom}px`;sizing.style.height=`${dimensions.height*zoom}px`;document.getElementById('zoom-label').textContent=Math.round(zoom*100)+'%';}
@@ -61,7 +61,7 @@
       for(let el=start.nextElementSibling;el;el=el.nextElementSibling){if(/^H[1-6]$/.test(el.tagName)&&Number(el.tagName.slice(1))<=level)break;const copy=el.cloneNode(true);copy.removeAttribute('id');copy.querySelectorAll('[id]').forEach(c=>c.removeAttribute('id'));content.append(copy);}
     }
   }
-  function reveal(n){expanded=new Set();if(n.area){expanded.add(n.area.id);for(let p=n.level>2?n.parent:n;p&&p.level>1;p=p.parent)expanded.add(p.id);}}
+  function reveal(n){expanded=new Set();if(n.area){expanded.add(n.area.id);for(let p=n;p&&p.level>1;p=p.parent)expanded.add(p.id);}}
   function select(n,push=false) {
     if(n===root){overview(push);return;}
     const collapse=push&&selected===n&&expanded.has(n.id);
@@ -69,7 +69,7 @@
     if(collapse)expanded.delete(n.id);
     showContent(n);
     const changed=oldArea!==activeArea||oldExpanded!==[...expanded].join();
-    if(changed){const left=viewport.scrollLeft,top=viewport.scrollTop;draw();if(n.level===1){const p=positions.get(n.id);viewport.scrollLeft=Math.max(0,(p.x-(n.number<=3?320:30))*zoom);viewport.scrollTop=Math.max(0,p.y*zoom-viewport.clientHeight/2);}else{viewport.scrollLeft=left;viewport.scrollTop=top;}}
+    if(changed){const left=viewport.scrollLeft,top=viewport.scrollTop;draw();if(n.children.length){const p=positions.get(n.id),leftBranch=n.area.number<=3;viewport.scrollLeft=Math.max(0,leftBranch?(p.x+width(n)+24)*zoom-viewport.clientWidth:(p.x-24)*zoom);viewport.scrollTop=Math.max(0,p.y*zoom-viewport.clientHeight/2);}else{viewport.scrollLeft=left;viewport.scrollTop=top;}}
     else {canvas.querySelectorAll('.selected').forEach(b=>b.classList.remove('selected'));const button=[...canvas.querySelectorAll('[data-node]')].find(b=>b.dataset.node===n.id);if(button)button.classList.add('selected');}
     if(push){history.pushState(null,'','#'+n.id);title.focus({preventScroll:true});}
   }

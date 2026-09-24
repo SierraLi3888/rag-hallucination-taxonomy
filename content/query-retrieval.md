@@ -20,73 +20,129 @@ The seven mechanisms can overlap. Missing evidence describes an outcome; mismatc
 
 ### 4.2.1 Ambiguous or Incomplete Queries
 
-**Paper comparison.** CondAmbigQA studies missing conditions; AmbigDocs examines same-name entities; Tree of Clarifications explores alternative interpretations [3–5]. Qin et al. address a different problem: false premises [6].
+#### Paper comparison
 
-**Analysis.** An unspecified entity or time period lets the system silently choose an interpretation. Retrieved documents can then support the wrong target, or supply attributes from different entities that the generator merges. A false premise instead presupposes an event or relation that may not exist.
+CondAmbigQA studies missing conditions; AmbigDocs examines same-name entities; Tree of Clarifications explores alternative interpretations [3–5]. Qin et al. address a different problem: false premises [6].
 
-**Current conclusion.** The hallucination pathway is **unverified interpretation → misapplied or merged evidence → unsupported attribution**. Ambiguity alone is not hallucination; the decisive error is presenting an unjustified assumption or fabricated combination as fact.
+#### Analysis
 
-**Evidence reviewed.** Conditional-answer evaluation [3]; entity-merging output categories [4]; clarification interventions [5]; premise verification [6]. Watson et al. provide observational query-risk evidence, not a RAG causal experiment [1].
+An unspecified entity or time period lets the system silently choose an interpretation. Retrieved documents can then support the wrong target, or supply attributes from different entities that the generator merges. A false premise instead presupposes an event or relation that may not exist.
+
+#### Current conclusion
+
+The hallucination pathway is **unverified interpretation → misapplied or merged evidence → unsupported attribution**. Ambiguity alone is not hallucination; the decisive error is presenting an unjustified assumption or fabricated combination as fact.
+
+#### Evidence reviewed
+
+Conditional-answer evaluation [3]; entity-merging output categories [4]; clarification interventions [5]; premise verification [6]. Watson et al. provide observational query-risk evidence, not a RAG causal experiment [1].
 
 ### 4.2.2 Query Reformulation Problems
 
-**Paper comparison.** Abe et al. examine expansion failures on unfamiliar and ambiguous queries; Goyal et al. test rewriting under retriever biases; RaDIO studies queries formed during generation [2, 7, 22].
+#### Paper comparison
 
-**Analysis.** Expansion can add an incorrect detail or privilege a popular interpretation. The resulting search may retrieve convincing evidence for the rewritten question while failing to support the original one. In iterative retrieval, a query that misses the current information gap can leave that gap unresolved.
+Abe et al. examine expansion failures on unfamiliar and ambiguous queries; Goyal et al. test rewriting under retriever biases; RaDIO studies queries formed during generation [2, 7, 22].
 
-**Current conclusion.** Reformulation can introduce **semantic drift before evidence is collected**. A downstream answer becomes unsupported when it treats the altered assumption as established. The cited retrieval gains or losses do not themselves measure this final transition.
+#### Analysis
 
-**Evidence reviewed.** Expansion comparisons across retrievers [2]; controlled bias tests [7]; query/trigger component experiments [22].
+Expansion can add an incorrect detail or privilege a popular interpretation. The resulting search may retrieve convincing evidence for the rewritten question while failing to support the original one. In iterative retrieval, a query that misses the current information gap can leave that gap unresolved.
+
+#### Current conclusion
+
+Reformulation can introduce **semantic drift before evidence is collected**. A downstream answer becomes unsupported when it treats the altered assumption as established. The cited retrieval gains or losses do not themselves measure this final transition.
+
+#### Evidence reviewed
+
+Expansion comparisons across retrievers [2]; controlled bias tests [7]; query/trigger component experiments [22].
 
 ### 4.2.3 Query–Document Mismatch
 
-**Paper comparison.** Abe et al. show query-dependent retrieval failures; Goyal et al. examine sensitivity to document features; AmbigDocs isolates confusion between same-name entities [2, 7, 4].
+#### Paper comparison
 
-**Analysis.** Matching can favour surface similarity or a familiar entity over the relation actually requested. Evidence can appear relevant while referring to another person, period or condition. If generation ignores this scope difference, a real fact is attributed to the wrong target.
+Abe et al. show query-dependent retrieval failures; Goyal et al. examine sensitivity to document features; AmbigDocs isolates confusion between same-name entities [2, 7, 4].
 
-**Current conclusion.** Mismatch can produce **plausible but wrongly attributed answers**, not merely empty results. These studies support particular forms of misalignment; they do not establish that every vocabulary or embedding mismatch produces hallucination.
+#### Analysis
 
-**Evidence reviewed.** Retrieval comparisons [2, 7]; entity-level output analysis [4]. AmbigDocs mainly supplies gold documents, so its reader errors cannot all be assigned to the retriever.
+Matching can favour surface similarity or a familiar entity over the relation actually requested. Evidence can appear relevant while referring to another person, period or condition. If generation ignores this scope difference, a real fact is attributed to the wrong target.
+
+#### Current conclusion
+
+Mismatch can produce **plausible but wrongly attributed answers**, not merely empty results. These studies support particular forms of misalignment; they do not establish that every vocabulary or embedding mismatch produces hallucination.
+
+#### Evidence reviewed
+
+Retrieval comparisons [2, 7]; entity-level output analysis [4]. AmbigDocs mainly supplies gold documents, so its reader errors cannot all be assigned to the retriever.
 
 ### 4.2.4 Missing Relevant Evidence
 
-**Paper comparison.** Park and Lee manipulate imperfect retrieval; RGB tests rejection when evidence cannot answer; Sufficient Context separates sufficient from insufficient contexts [8, 9, 13]. DRUID tests context utilisation under more realistic retrieved evidence [14].
+#### Paper comparison
 
-**Analysis.** A missing supporting fact leaves a claim ungrounded. The model may supply a plausible completion from prior knowledge or pattern matching, producing a fluent answer whose certainty exceeds the evidence. Alternatively, it may correctly refuse or answer only the supported part.
+Park and Lee manipulate imperfect retrieval; RGB tests rejection when evidence cannot answer; Sufficient Context separates sufficient from insufficient contexts [8, 9, 13]. DRUID tests context utilisation under more realistic retrieved evidence [14].
 
-**Current conclusion.** The causal pathway requires two conditions: **an evidence gap and a decision to answer beyond it**. Absence of evidence alone is insufficient to explain hallucination.
+#### Analysis
 
-**Evidence reviewed.** Unanswerable-context output categories [8, 9]; sufficiency-stratified responses [13]; naturally retrieved context evaluation [14].
+A missing supporting fact leaves a claim ungrounded. The model may supply a plausible completion from prior knowledge or pattern matching, producing a fluent answer whose certainty exceeds the evidence. Alternatively, it may correctly refuse or answer only the supported part.
+
+#### Current conclusion
+
+The causal pathway requires two conditions: **an evidence gap and a decision to answer beyond it**. Absence of evidence alone is insufficient to explain hallucination.
+
+#### Evidence reviewed
+
+Unanswerable-context output categories [8, 9]; sufficiency-stratified responses [13]; naturally retrieved context evaluation [14].
 
 ### 4.2.5 Irrelevant Retrieved Passages
 
-**Paper comparison.** Yoran et al. examine retrieval-induced errors; Cuconasu et al. distinguish distracting from random documents; Hong et al. test counterfactual noise [10–12].
+#### Paper comparison
 
-**Analysis.** A passage sharing entities or topic words can supply an attractive but inapplicable answer. The generator may copy its entity or relation into the response. This differs from arbitrary noise: random material sometimes improves accuracy in Cuconasu et al.'s settings, so irrelevance is not uniformly harmful.
+Yoran et al. examine retrieval-induced errors; Cuconasu et al. distinguish distracting from random documents; Hong et al. test counterfactual noise [10–12].
 
-**Current conclusion.** The risk depends on **how distractors compete with or impersonate supporting evidence**, not simply their number. False source content also implicates source quality and downstream trust, not query formulation alone.
+#### Analysis
 
-**Evidence reviewed.** Retrieval/no-retrieval comparisons and selected-case error analysis [10]; controlled noise types [11]; misleading-context experiments [12].
+A passage sharing entities or topic words can supply an attractive but inapplicable answer. The generator may copy its entity or relation into the response. This differs from arbitrary noise: random material sometimes improves accuracy in Cuconasu et al.'s settings, so irrelevance is not uniformly harmful.
+
+#### Current conclusion
+
+The risk depends on **how distractors compete with or impersonate supporting evidence**, not simply their number. False source content also implicates source quality and downstream trust, not query formulation alone.
+
+#### Evidence reviewed
+
+Retrieval/no-retrieval comparisons and selected-case error analysis [10]; controlled noise types [11]; misleading-context experiments [12].
 
 ### 4.2.6 Ranking and Evidence Selection Failures
 
-**Paper comparison.** SetR examines complementary evidence selection; MultiHop-RAG tests questions requiring multiple facts; RAGChecker separates claim coverage from context quality [16, 17, 24].
+#### Paper comparison
 
-**Analysis.** Ranking individually relevant passages can repeatedly select the same fact while omitting a necessary qualifier or comparison value. The evidence appears abundant but is incomplete. A generator can then generalise beyond a supported condition or invent the missing relationship.
+SetR examines complementary evidence selection; MultiHop-RAG tests questions requiring multiple facts; RAGChecker separates claim coverage from context quality [16, 17, 24].
 
-**Current conclusion.** Ranking contributes through **selective omission and misleading evidence composition**. This differs from candidate-generation failure: useful evidence may exist among candidates but never reach the selected set.
+#### Analysis
 
-**Evidence reviewed.** Set-selection comparisons [16]; multi-evidence retrieval evaluation [17]; diagnostic metrics [24]. These establish coverage problems more directly than final hallucination causation.
+Ranking individually relevant passages can repeatedly select the same fact while omitting a necessary qualifier or comparison value. The evidence appears abundant but is incomplete. A generator can then generalise beyond a supported condition or invent the missing relationship.
+
+#### Current conclusion
+
+Ranking contributes through **selective omission and misleading evidence composition**. This differs from candidate-generation failure: useful evidence may exist among candidates but never reach the selected set.
+
+#### Evidence reviewed
+
+Set-selection comparisons [16]; multi-evidence retrieval evaluation [17]; diagnostic metrics [24]. These establish coverage problems more directly than final hallucination causation.
 
 ### 4.2.7 Multi-Hop Retrieval Failures
 
-**Paper comparison.** ChainRAG addresses lost intermediate entities; Q-DREAM examines decomposition and dependencies; MARCH combines ambiguity with multi-hop inference [18–20]. HopRefusalBench tests unanswerable chains and hallucinated completion [21].
+#### Paper comparison
 
-**Analysis.** An incorrect or missing bridge entity changes the next query. Later searches may retrieve internally consistent evidence about the wrong path, reinforcing the initial mistake. When a required hop cannot be supported, continued answering may fabricate the missing connection.
+ChainRAG addresses lost intermediate entities; Q-DREAM examines decomposition and dependencies; MARCH combines ambiguity with multi-hop inference [18–20]. HopRefusalBench tests unanswerable chains and hallucinated completion [21].
 
-**Current conclusion.** Multi-hop hallucination can arise through **error propagation or unsupported chain completion**. Additional retrieval does not necessarily repair a path already redirected by a mistaken intermediate assumption.
+#### Analysis
 
-**Evidence reviewed.** Entity-completion and dependency ablations [18, 19]; ambiguity/clarification evaluation [20]; refusal and search-trajectory analysis [21]. The last is a 2026 preprint.
+An incorrect or missing bridge entity changes the next query. Later searches may retrieve internally consistent evidence about the wrong path, reinforcing the initial mistake. When a required hop cannot be supported, continued answering may fabricate the missing connection.
+
+#### Current conclusion
+
+Multi-hop hallucination can arise through **error propagation or unsupported chain completion**. Additional retrieval does not necessarily repair a path already redirected by a mistaken intermediate assumption.
+
+#### Evidence reviewed
+
+Entity-completion and dependency ablations [18, 19]; ambiguity/clarification evaluation [20]; refusal and search-trajectory analysis [21]. The last is a 2026 preprint.
 
 ## 4.3 Comparison of Existing Literature
 
