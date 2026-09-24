@@ -29,5 +29,7 @@ for name,doc in docs.items():
         if url.fragment:
             assert target in docs and unquote(url.fragment) in docs[target].ids, f'{name}: missing anchor {link}'
 for a in json.loads((ROOT/'content/areas.json').read_text()):
-    assert docs[a['id']+'.html'].h2==9, f'{a["id"]}: missing research sections'
-print('PASS: 6 main nodes, 6 research pages, 8 sections each; all local links and anchors resolve.')
+    raw = (ROOT/'content'/(a['id']+'.md')).read_text()
+    expected = sum(line.startswith('## ') for line in raw.splitlines()) + 1
+    assert docs[a['id']+'.html'].h2 == expected, f'{a["id"]}: missing research sections'
+print('PASS: 6 main nodes, 6 research pages, source headings preserved; all local links and anchors resolve.')

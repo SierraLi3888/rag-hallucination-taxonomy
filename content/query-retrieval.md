@@ -1,79 +1,134 @@
 Owner: Zhixuan Li
 Status: In progress
+Layout: report
 
-## Overview / Definition
+A critical review of 22 papers on query and retrieval failures in RAG, covering query reformulation, matching, evidence coverage, selection, and multi-hop dependencies. The review distinguishes improvements in retrieval from evidence of reduced hallucination.
 
-**Progress:** Reviewed 22 papers and developed a provisional account of how query and retrieval failures affect the evidence available to a RAG system.
+## 1 Representing the information need without changing the question
 
-**Key finding:** Better retrieval scores do not, by themselves, demonstrate fewer hallucinations. Evidence availability, collective sufficiency, and faithful generation require separate evaluation.
+### Paper comparison
 
-**Scope:** Query interpretation and reformulation, matching, candidate retrieval, reranking, evidence selection, and subsequent retrieval decisions. Corpus absence and destructive chunking are upstream issues; context compression and arrangement follow selection.
+Ma et al. introduce reader-guided rewriting; RQ-RAG separates rewriting, decomposition, and disambiguation. MaFeRw uses labelled feedback, whereas MSPA-CQR uses self-consistency. UTRAG combines history-aware rewriting with generator adaptation, limiting attribution to rewriting alone. [2, 3, 15, 19, 21](#references)
 
-## Subcategories or Failure Modes
+### Analysis
 
-The following five mechanisms are provisional categories derived from the review.
+A fluent rewrite can still lose an entity, date, negation, or requested relation. Retrieval and answer rewards protect different objectives; agreement between candidate rewrites does not establish truth.
 
-### Query intent drift
+### Current conclusion
 
-Rewriting or disambiguation can change the entity, time constraint, or relation being requested. Fluency and agreement between rewrites do not establish fidelity to the original question. [2, 3, 15, 19, 21](#references)
+Reformulation should preserve the information need while improving retrievability. Its usefulness is supported in tested pipelines, but indiscriminate rewriting is not justified.
 
-### Query–retriever mismatch
+### Evidence reviewed
 
-A faithful query may work poorly with a particular retriever. Sparse and dense retrieval favour different representations; improved compatibility does not guarantee robustness to spurious document features. [5, 6, 14](#references)
+Rewriting objectives, supervision assumptions, conversational drift, ablations, and downstream QA evaluation across the five studies above.
 
-### Incomplete evidence coverage
+## 2 Matching query representations to retrievers and their biases
 
-Retrieving the correct document can still miss the answer-bearing passage or qualifying information. Diagnosis must distinguish facts absent from the corpus, damaged during indexing, and missed by retrieval. [10, 12, 17](#references)
+### Paper comparison
 
-### Redundant or insufficient evidence selection
+HyDE uses generated hypothetical documents as search representations. DVCQR aligns separate rewrites with sparse and dense retrievers. Goyal et al. assess whether rewriting reduces sensitivity to inappropriate document features. [5, 6, 14](#references)
 
-Individually relevant passages can repeat the same fact while leaving another requirement unsupported. Reranking cannot recover evidence that never entered the candidate pool. [1, 11](#references)
+### Analysis
 
-### Broken multi-hop dependencies
+Retriever compatibility and bias robustness are distinct. A hypothetical passage may aid search despite inaccurate details; treating it as verified evidence creates a different reliability problem.
 
-Missing bridge entities or incorrect intermediate facts can redirect later searches. Decomposition needs to preserve dependencies; more subquestions or retrieval rounds do not establish complete support. [8, 18, 20, 22](#references)
+### Current conclusion
 
-## Evidence Reviewed
+Query quality depends on the retrieval mechanism. Evaluate semantic fidelity, retriever compatibility, and robustness separately; rewriting alone may not repair document-encoding vulnerabilities.
 
-The corpus combines query-rewriting methods, retrieval and selection interventions, multi-hop benchmarks, and diagnostic studies. The review compared mechanisms, supervision assumptions, component ablations, and evaluation measures.
+### Evidence reviewed
 
-**Illustrative result:** ChainRAG reports second-subquestion Recall@2 on MuSiQue rising from 40.91% to 58.81% after entity completion in its controlled analysis. This measures retrieval recovery, not a reduction in hallucinations. [22](#references)
+HyDE retrieval experiments; DVCQR retriever-specific results; controlled bias measures and adversarial tests, with their stated scope limitations.
 
-**Evidence boundary:** Results come from different tasks, corpora, models, and retrieval budgets. They are not a shared leaderboard, and no pooled effect size is estimated. RAGTruth, RGB, DRUID, and Sufficient Context help distinguish retrieval performance from downstream support, correctness, and context use. [4, 7, 9, 16](#references)
+## 3 Finding the required evidence at the right granularity
 
-## Cross-paper Comparison
+### Paper comparison
 
-| Comparison | Finding from the reviewed studies | Implication |
-| --- | --- | --- |
-| DVCQR and retriever-bias analysis [6, 14] | Retriever-specific rewriting improves matching in tested settings; bias robustness remains a separate objective. | Evaluate fidelity, compatibility, and robustness separately. |
-| RAGChecker and financial QA diagnostics [10, 17] | Correct-document retrieval can conceal missing answer-bearing facts. | Inspect evidence at the granularity needed to justify the answer. |
-| SetR and decomposition plus reranking [1, 11] | SetR improves some coverage measures while trailing a comparator on MRR; decomposition and reranking make distinct contributions. | Separate candidate acquisition, rank quality, and set sufficiency. |
-| ChainRAG and Q-DREAM [20, 22] | Entity completion improves retrieval; Q-DREAM's ablations show that decomposition without dependency handling can hurt performance. | Trace intermediate entities and dependencies across searches. |
+RAGChecker distinguishes claim recall from context precision. Kobeissi and Langlais show that retrieving the correct financial document can still miss the answer-bearing page or chunk. Leung et al. separate chunking, retrieval, and later-stage errors. [10, 12, 17](#references)
 
-## Analysis / Synthesis
+### Analysis
 
-The review's main contribution is a diagnostic sequence: **preserve the question → recover the required facts → select complementary evidence → assess support for the answer.**
+Trace whether a required fact existed in the source, survived indexing, entered the candidate pool, and reached the prompt. Document-level relevance does not establish answer-level coverage.
 
-Failures should be located where evidence is lost, rather than inferred solely from an incorrect answer. Relevant distinctions are:
+### Current conclusion
 
-- **Ranking versus coverage:** A highly ranked relevant passage may leave other requirements unmet.
-- **Coverage versus sufficiency:** Retrieved facts must jointly support the requested answer.
-- **Support versus correctness:** An answer may be correct from model memory yet unsupported by the supplied context, or faithfully repeat an incorrect source.
+Evaluate coverage at the granularity required to justify the answer. Distinguish unavailable, damaged, and unretrieved evidence before assigning a cause.
 
-## Current Conclusion
+### Evidence reviewed
 
-Query and retrieval interventions address specific upstream evidence failures. Their effect on hallucination must be demonstrated separately through unsupported-claim and contradiction evaluation, alongside the proportion of questions answered when abstention is allowed.
+RAGChecker metric definitions; FinanceBench multi-granularity and oracle experiments; stage-specific error examples.
 
-**Next research priority:** Compare interventions on the same questions, corpus, generator, and budget; trace evidence before and after selection; and test naturally retrieved failures alongside controlled perturbations.
+## 4 Selecting complementary evidence rather than redundant relevance
 
-## Detection & Mitigation
+### Paper comparison
 
-| Failure to diagnose | Candidate response | Remaining limitation |
-| --- | --- | --- |
-| Intent drift or matching failure | Audit entity, time, negation, and relation constraints; test retriever-aware rewriting. | Fluent or self-consistent rewrites can still be wrong. |
-| Missing or redundant evidence | Inspect claim coverage and evidence survival; use targeted retrieval and complementary set selection. | Selection cannot recover facts absent from its candidates. |
-| Broken retrieval dependencies | Track intermediate fact provenance; use entity completion and dependency-aware refinement. | An early mistake can propagate to later searches. |
-| Insufficient support for an answer | Assess context sufficiency and use clarification or abstention where appropriate. | Report correctness together with answer coverage. |
+SetR selects passages jointly: on MultiHopRAG, its reported Prec@5 exceeds RankGPT’s (0.2268 versus 0.1799), while MRR@10 is lower (0.5742 versus 0.6358). Ammann et al. separate decomposition, reranking, and their combination. [1, 11](#references)
+
+### Analysis
+
+A highly relevant passage may be followed by duplicates that leave other requirements unanswered. Candidate acquisition and complementary selection are different problems; a selector cannot recover missing candidates.
+
+### Current conclusion
+
+Supplement ranking metrics with coverage, redundancy, and set-sufficiency assessment. More passages do not necessarily provide more useful evidence.
+
+### Evidence reviewed
+
+SetR set-selection experiments and matched controls; decomposition and reranking component comparisons.
+
+## 5 Preserving dependencies through multi hop and iterative retrieval
+
+### Paper comparison
+
+MultiHop-RAG benchmarks evidence collection across hops. ChainRAG’s entity completion raises second-subquestion Recall@2 from 40.91% to 58.81% in its MuSiQue analysis. Q-DREAM shows decomposition can hurt without dependency handling; FLARE retrieves as generation develops. [8, 18, 20, 22](#references)
+
+### Analysis
+
+Later searches depend on intermediate entities and facts. An early error can redirect the entire trajectory. Parallel evidence collection, sequential bridge reasoning, and repeated retrieval are related but distinct.
+
+### Current conclusion
+
+Multi-hop reliability requires preserving dependencies and accumulated support. Counting subquestions or retrieval calls does not measure completeness.
+
+### Evidence reviewed
+
+Benchmark evidence labels, entity-completion controls, dependency ablations, retrieval-trigger design, and supporting-fact evaluation. [1, 3, 8, 18, 20, 22](#references)
+
+## 6 Distinguishing insufficient evidence from downstream hallucination
+
+### Paper comparison
+
+RAGTruth annotates unsupported or contradictory spans; RGB tests noise, rejection, integration, and counterfactual robustness. Sufficient Context separates answerability from utilisation. DRUID finds that synthetic evidence can inflate context-utilisation estimates. [4, 7, 9, 16](#references)
+
+### Analysis
+
+Evidence sufficiency, answer support, and factual correctness are different properties. Insufficient context has several possible upstream causes; sufficient evidence can still be misused. Selective generation must be evaluated alongside answer coverage.
+
+### Current conclusion
+
+Retrieval failures and hallucinations are related but distinct. Grounded answers also depend on context preservation, faithful utilisation, and appropriate abstention.
+
+### Evidence reviewed
+
+Foundational RAG, hallucination annotations, capability benchmarks, sufficiency-stratified errors, and component diagnostics. [4, 7, 9, 12, 13, 16, 17](#references)
+
+## 7 Overall assessment and research priorities
+
+### Paper comparison
+
+The corpus studies different intervention targets and outcomes: query text, matching, candidates, selected sets, retrieval trajectories, and response policy. Retrieval metrics, QA scores, and unsupported-claim measures are not interchangeable.
+
+### Analysis
+
+Four questions organise the synthesis: Does the representation preserve the question? Are the required facts retrieved? Does the selected set jointly support the answer? Is that support used faithfully? Priorities are matched comparisons, evidence traces, claim-level evaluation, and naturally retrieved failure cases.
+
+### Current conclusion
+
+Retrieval improvements reduce specific upstream evidence failures; hallucination reduction requires separate downstream evaluation. Reliable grounding depends on collectively adequate evidence and generation constrained by that evidence.
+
+### Evidence reviewed
+
+All 22 references below, triangulated across methods, benchmarks, and diagnostic studies. Heterogeneous settings preclude a pooled effect estimate.
 
 ## References
 

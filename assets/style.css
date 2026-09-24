@@ -2,3 +2,5 @@
 /* Six independent spokes; no direction is visually a child of another. */
 @media(min-width:701px){.tree{position:relative}.root{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:25%;margin:0;z-index:1;padding:18px 12px}.root strong{font-size:20px}.root span{font-size:12px;letter-spacing:.06em}.root:after,.branches:before,.node:before{display:none}.branches{grid-template-columns:32% 32%;justify-content:space-between;gap:24px;grid-auto-rows:1fr}.node{min-height:160px}.connections{position:absolute;inset:28px;width:calc(100% - 56px);height:calc(100% - 56px);fill:none;stroke:#abc0cf;stroke-width:1.6;pointer-events:none}}
 @media(max-width:700px){.connections{display:none}}
+
+.report-branch{padding:12px 0;border-top:1px solid #dce2eb}.report-branch summary{cursor:pointer;font-size:16px;font-weight:600;line-height:1.5}.report-branch>a{display:inline-block;margin:10px 0 0 20px;font-size:14px;color:#246d72}.report-branch .subtree{margin:10px 0 0 20px;font-size:14px}

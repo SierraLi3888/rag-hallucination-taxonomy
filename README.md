@@ -23,7 +23,7 @@ The six branches organise team responsibilities. Their placement does not imply 
 
 1. Open your research page on the website and select **Edit this research on GitHub**, or open your content file from the table above and click the pencil icon. Sign in to your GitHub account if prompted.
 2. Check the `Owner:` line and update `Status:` as appropriate: `Not started`, `In progress`, or `Ready for review`. Keep both lines and the blank line after them.
-3. Replace the “To be completed…” prompts with your research. Keep the eight `##` section headings unchanged and in their original order.
+3. Replace the “To be completed…” prompts with your research. For the blank templates, keep the eight `##` section headings unchanged and in their original order. Direction 4 instead follows the supplied report: seven chapter headings, each containing Paper comparison, Analysis, Current conclusion, and Evidence reviewed, followed by a separate References section.
 4. Select **Commit changes…**, describe your contribution, and choose **Create a new branch for this commit and start a pull request**. Ask a teammate to review the proposed changes.
 5. After the checks pass and the pull request is merged into `main`, GitHub automatically updates the website. Allow a few minutes, then refresh your research page.
 
@@ -31,7 +31,7 @@ Edit your assigned file to reduce conflicts. Each file's `Owner:` value is displ
 
 ### Research outcome template
 
-Each contributor maintains these eight sections:
+The blank contributor templates contain these eight sections:
 
 - Overview / Definition
 - Subcategories or Failure Modes
@@ -41,6 +41,8 @@ Each contributor maintains these eight sections:
 - Current Conclusion
 - Detection & Mitigation, if applicable
 - References
+
+Direction 4 uses `Layout: report` in its metadata. Its `##` chapter headings and `###` subsection headings generate the expandable branch navigation directly. Preserve the report headings when editing this file.
 
 ### Adding subcategories
 

@@ -1,7 +1,7 @@
 """Generate a portable static website from six independently editable Markdown files."""
 from pathlib import Path
 from html import escape
-import json, os, shutil
+import json, os, shutil, re
 import markdown
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,7 +15,15 @@ def render(area):
     meta, body = raw.split('\n\n', 1)
     metadata = dict(line.split(': ', 1) for line in meta.splitlines())
     headings = [line[3:].strip() for line in body.splitlines() if line.startswith('## ')]
-    if headings != SECTIONS:
+    if metadata.get('Layout') == 'report':
+        if not headings or headings[-1] != 'References':
+            raise ValueError(f"{area['id']}: report must end with References")
+        chapters = re.split(r'^## ', body, flags=re.M)[1:-1]
+        for chapter in chapters:
+            subs = re.findall(r'^### (.+)$', '## ' + chapter, re.M)
+            if subs != ['Paper comparison', 'Analysis', 'Current conclusion', 'Evidence reviewed']:
+                raise ValueError(f"{area['id']}: retain the report subsection headings")
+    elif headings != SECTIONS:
         raise ValueError(f"{area['id']}: retain the eight required ## headings in order")
     md = markdown.Markdown(extensions=['tables', 'fenced_code', 'toc', 'sane_lists'])
     html = md.convert(body)
@@ -52,6 +60,8 @@ for a,meta,body,tokens in records:
     toc=''.join(f'<a href="#{t["id"]}">{t["name"]}</a>' for t in tokens)
     children=tokens[1]['children']
     sub='<ul class="subtree">'+child_links(children)+'</ul>' if children else '<p class="empty">No subcategories added yet.<br>The assigned member will define this branch.</p>'
+    if meta.get('Layout') == 'report':
+        sub = ''.join('<details class="report-branch"><summary>' + escape(t['name']) + '</summary><a href="#' + escape(t['id']) + '">Read section</a><ul class="subtree">' + child_links(t['children']) + '</ul></details>' for t in tokens if t['name'] != 'References')
     edit=f'<a class="edit" href="https://github.com/{escape(repo)}/edit/main/content/{a["id"]}.md">Edit this research on GitHub ↗</a>' if repo else ''
     main=f'''<main id="main" class="detail"><aside class="sidebar"><a class="back" href="index.html">← Taxonomy overview</a><p class="eyebrow">RESEARCH DIRECTIONS</p><nav aria-label="Research directions">{nav}</nav></aside><div class="research"><p class="eyebrow">DIRECTION {a['member']:02d} / RESEARCH OUTCOMES</p><h1>{escape(a['title'])}</h1><div class="metadata"><span>{escape(meta['Owner'])}</span><span class="status">{escape(meta['Status'])}</span></div><p class="notice">Research content and subcategories are maintained by the assigned member. Empty sections are placeholders, not findings.</p><section class="branch-box"><h2>Branch structure</h2>{sub}</section><div class="reading-layout"><article>{body}</article><aside class="toc"><p class="eyebrow">ON THIS PAGE</p><nav aria-label="On this page">{toc}</nav>{edit}</aside></div></div></main>'''
     (OUT/(a['id']+'.html')).write_text(page(a['title'],main))
