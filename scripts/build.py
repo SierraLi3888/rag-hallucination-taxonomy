@@ -23,6 +23,17 @@ def render(area):
             subs = re.findall(r'^### (.+)$', '## ' + chapter, re.M)
             if subs != ['Paper comparison', 'Analysis', 'Current conclusion', 'Evidence reviewed']:
                 raise ValueError(f"{area['id']}: retain the report subsection headings")
+    elif metadata.get('Layout') == 'stage-review':
+        expected = ['5.1 Stage Role and Boundary', '5.2 Major Failure Mechanisms', '5.3 Comparison of Existing Literature', '5.4 Cross-Stage Effects and Hallucination Manifestations', '5.5 Section Conclusion', 'References']
+        if headings != expected:
+            raise ValueError(f"{area['id']}: preserve the agreed Section 5 structure")
+        mechanisms = re.findall(r'^### (5\.2\.\d+ .+)$', body, re.M)
+        if len(mechanisms) != 7:
+            raise ValueError(f"{area['id']}: expected seven failure mechanisms")
+        comparison = body.split('## 5.3 ', 1)[1].split('## 5.4 ', 1)[0]
+        for theme in re.split(r'^### ', comparison, flags=re.M)[1:]:
+            if re.findall(r'^#### (.+)$', theme, re.M) != ['Paper comparison', 'Analysis', 'Current conclusion', 'Evidence reviewed']:
+                raise ValueError(f"{area['id']}: incomplete literature comparison")
     elif not headings:
         raise ValueError(f"{area['id']}: add at least one ## heading")
     md = markdown.Markdown(extensions=['tables', 'fenced_code', 'toc', 'sane_lists'])
@@ -56,7 +67,7 @@ for a,meta,body,tokens in records:
     toc=''.join(f'<a href="#{t["id"]}">{t["name"]}</a>' for t in tokens)
     children=branch_tokens(body,tokens)
     sub='<ul class="subtree">'+child_links(children)+'</ul>' if children else '<p class="empty">No subcategories added yet.<br>The assigned member will define this branch.</p>'
-    if meta.get('Layout') == 'report':
+    if meta.get('Layout') in ('report', 'stage-review'):
         sub = ''.join('<details class="report-branch"><summary>' + escape(t['name']) + '</summary><a href="#' + escape(t['id']) + '">Read section</a><ul class="subtree">' + child_links(t['children']) + '</ul></details>' for t in tokens if t['name'] != 'References')
     edit=f'<a class="edit" href="https://github.com/{escape(repo)}/edit/main/content/{a["id"]}.md">Edit this research on GitHub ↗</a>' if repo else ''
     main=f'''<main id="main" class="detail"><aside class="sidebar"><a class="back" href="index.html">← Taxonomy overview</a><p class="eyebrow">RESEARCH DIRECTIONS</p><nav aria-label="Research directions">{nav}</nav></aside><div class="research"><p class="eyebrow">DIRECTION {a['member']:02d} / RESEARCH OUTCOMES</p><h1>{escape(a['title'])}</h1><div class="metadata"><span>{escape(meta['Owner'])}</span><span class="status">{escape(meta['Status'])}</span></div><p class="notice">Research content and subcategories are maintained by the assigned member. Empty sections are placeholders, not findings.</p><section class="branch-box"><h2>Branch structure</h2>{sub}</section><div class="reading-layout"><article>{body}</article><aside class="toc"><p class="eyebrow">ON THIS PAGE</p><nav aria-label="On this page">{toc}</nav>{edit}</aside></div></div></main>'''
