@@ -224,7 +224,7 @@ Multi-hop reliability depends on maintaining correct dependencies across searche
 
 #### Evidence reviewed
 
-Tang and Yang (2024): multi-hop benchmark and separate retrieval/generation experiments. Zhu et al. (2025): Section 5.2.6.4 and Table 2 entity-completion analysis. Ye et al. (2025): Table 2 ablations and dynamic retrieval design. Jiang et al. (2023): FLARE’s retrieval trigger and long-form task evaluation. Chan et al. (2024): learned refinement operations. Ammann et al. (2025): HotpotQA Table 2 and decomposition-budget analysis. These settings establish related mechanisms rather than a controlled comparison of all six systems.
+Tang and Yang (2024): multi-hop benchmark and separate retrieval/generation experiments. Zhu et al. (2025): Section 4.4 and Table 2 entity-completion analysis. Ye et al. (2025): Table 2 ablations and dynamic retrieval design. Jiang et al. (2023): FLARE’s retrieval trigger and long-form task evaluation. Chan et al. (2024): learned refinement operations. Ammann et al. (2025): HotpotQA Table 2 and decomposition-budget analysis. These settings establish related mechanisms rather than a controlled comparison of all six systems.
 
 
 ### 5.3.6 Evaluation of Evidence Sufficiency and Hallucination
