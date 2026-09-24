@@ -3,7 +3,7 @@ Status: In progress
 
 ## Overview / Definition
 
-**Progress:** Reviewed 22 papers and developed a provisional account of how query and retrieval failures affect the evidence available to a RAG system. This is a focused critical literature review, not a new experimental study.
+**Progress:** Reviewed 22 papers and developed a provisional account of how query and retrieval failures affect the evidence available to a RAG system.
 
 **Key finding:** Better retrieval scores do not, by themselves, demonstrate fewer hallucinations. Evidence availability, collective sufficiency, and faithful generation require separate evaluation.
 
@@ -64,7 +64,7 @@ Failures should be located where evidence is lost, rather than inferred solely f
 
 Query and retrieval interventions address specific upstream evidence failures. Their effect on hallucination must be demonstrated separately through unsupported-claim and contradiction evaluation, alongside the proportion of questions answered when abstention is allowed.
 
-**Next research priority:** Compare interventions on the same questions, corpus, generator, and budget; trace evidence before and after selection; and test naturally retrieved failures alongside controlled perturbations. These are proposed next steps, not completed experiments.
+**Next research priority:** Compare interventions on the same questions, corpus, generator, and budget; trace evidence before and after selection; and test naturally retrieved failures alongside controlled perturbations.
 
 ## Detection & Mitigation
 
@@ -77,7 +77,7 @@ Query and retrieval interventions address specific upstream evidence failures. T
 
 ## References
 
-The 22 papers below form the reviewed corpus. Numbers correspond to citations above; bibliographic details follow the progress report.
+The 22 papers below form the reviewed corpus. Numbers correspond to citations above.
 
 1. **Ammann et al. (2025).** [Question Decomposition for Retrieval-Augmented Generation](https://aclanthology.org/2025.acl-srw.32/). ACL Student Research Workshop.
 2. **Cao et al. (2026).** [Multi-Faceted Self-Consistent Preference Alignment for Query Rewriting in Conversational Search](https://aclanthology.org/2026.findings-acl.638/). Findings of ACL.
