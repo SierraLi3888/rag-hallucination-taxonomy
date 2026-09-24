@@ -7,7 +7,7 @@ def branch_tokens(body, tokens):
         if t['children']: return True
         section = re.search(r'<h2 id="'+re.escape(t['id'])+r'">.*?</h2>(.*?)(?=<h2 |$)', body, re.S)
         text = re.sub(r'<[^>]+>', '', section[1] if section else '').strip()
-        return bool(text and text not in ('To be completed by the assigned member.', 'To be completed by the assigned member (if applicable).'))
+        return text not in ('To be completed by the assigned member.', 'To be completed by the assigned member (if applicable).')
     return [t for t in tokens if populated(t)]
 
 def render_home(records, repo):

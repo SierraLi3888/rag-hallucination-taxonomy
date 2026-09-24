@@ -33,3 +33,45 @@ for a in json.loads((ROOT/'content/areas.json').read_text()):
     expected = sum(line.startswith('## ') for line in raw.splitlines()) + 1
     assert docs[a['id']+'.html'].h2 == expected, f'{a["id"]}: missing research sections'
 print('PASS: 6 main nodes, 6 research pages, source headings preserved; all local links and anchors resolve.')
+
+# Contributor headings must keep producing nested branches without frontend edits.
+import markdown
+from home import branch_tokens, render_home
+sample = '''## Topic
+
+### Mechanism
+
+#### Analysis
+
+Research text.
+
+##### Detail
+
+###### Evidence
+
+## New empty topic
+
+## Untouched template
+
+To be completed by the assigned member.
+'''
+parser = markdown.Markdown(extensions=['toc'])
+body = parser.convert(sample)
+branches = branch_tokens(body, parser.toc_tokens)
+assert [b['name'] for b in branches] == ['Topic', 'New empty topic']
+node = branches[0]
+for label in ['Mechanism', 'Analysis', 'Detail', 'Evidence']:
+    assert len(node['children']) == 1
+    node = node['children'][0]
+    assert node['name'] == label
+areas = json.loads((ROOT/'content/areas.json').read_text())
+fixture = render_home([(a, {'Owner':'Test contributor','Status':'In progress'}, body, parser.toc_tokens) for a in areas], '')
+import re
+fixture_graph = json.loads(re.search(r'id="taxonomy-data">(.*?)</script>', fixture, re.S)[1])
+for area in fixture_graph['children']:
+    node = area['children'][0]
+    for expected_level in range(2, 7):
+        assert node['level'] == expected_level
+        if expected_level < 6:
+            node = node['children'][0]
+print('PASS: all six contributor files support automatic branches through Markdown heading levels 2–6, including newly added empty headings.')

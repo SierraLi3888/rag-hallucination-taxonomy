@@ -21,9 +21,9 @@ The six branches organise team responsibilities. Their placement does not imply 
 
 ## How to contribute without writing code
 
-1. Open your research page on the website and select **Edit this research on GitHub**, or open your content file from the table above and click the pencil icon. Sign in to your GitHub account if prompted.
+1. Open your research page on the website and select **Edit on GitHub**, or open your content file from the table above and click the pencil icon. Sign in to your GitHub account if prompted.
 2. Check the `Owner:` line and update `Status:` as appropriate: `Not started`, `In progress`, or `Ready for review`. Keep both lines and the blank line after them.
-3. Replace the “To be completed…” prompts with your research. The eight template sections are a starting point. Add or edit `##`, `###`, and `####` headings to create branches automatically; ordinary paragraphs update node content. Empty template sections remain hidden from the map. Direction 4 instead follows the supplied report: seven chapter headings, each containing Paper comparison, Analysis, Current conclusion, and Evidence reviewed, followed by a separate References section.
+3. Replace the “To be completed…” prompts with your research. The eight template sections are a starting point. Add or edit `##`, `###`, and `####` headings to create branches automatically; ordinary paragraphs update node content. Empty template sections remain hidden from the map. Direction 4 follows the agreed Section 4 structure: five main sections, seven failure mechanisms under Section 4.2, and a separate References section. Each mechanism branches into Paper comparison, Analysis, Current conclusion, and Evidence reviewed.
 4. Select **Commit changes…**, describe your contribution, and choose **Create a new branch for this commit and start a pull request**. Ask a teammate to review the proposed changes.
 5. After the checks pass and the pull request is merged into `main`, GitHub automatically updates the website. Allow a few minutes, then refresh your research page.
 
@@ -42,35 +42,60 @@ The blank contributor templates contain these eight sections:
 - Detection & Mitigation, if applicable
 - References
 
-Direction 4 uses `Layout: report` in its metadata. Its `##` chapter headings and `###` subsection headings generate the expandable branch navigation directly. Preserve the report headings when editing this file.
+Direction 4 uses `Layout: stage-review` in its metadata. Preserve its agreed Section 4 headings and seven failure mechanisms. The `####` research-note headings under each mechanism create another clickable level. Other contributors can develop their own heading structure from the blank templates.
 
 ### Automatic mind-map branches
 
-Each contributor edits only their own file in `content/`:
+Each contributor edits only their own file in `content/`. No frontend or diagram configuration changes are needed.
 
-- `## Heading` creates a branch below your research direction.
-- `### Heading` creates a child branch; `#### Heading` creates the next level.
-- Paragraphs, lists, and tables beneath a heading become that node’s research content.
-- Empty default placeholders do not create branches. Add content or a child heading to make the section appear.
-- Save or merge into `main`; the automatic deployment rebuilds the diagram from the latest files.
+| What you write | What appears on the website |
+| --- | --- |
+| `## Topic` | A branch below your assigned research direction |
+| `### Subtopic` | A child of the preceding `##` topic |
+| `#### Paper comparison` | A child of the preceding `###` subtopic |
+| `##### Detail` / `###### Further detail` | Further nested branches |
+| Paragraphs, bullet lists, tables, or citations | Content in the selected node's reading panel |
+| `**Bold text**` | Emphasis within the content, not a new branch |
 
-For example (illustrative headings only):
+Put each heading on its own line, with a space after the `#` characters and a blank line before the content. Use successive heading levels to express parent–child relationships. A new heading creates a branch even before you add its body text. Untouched template sections containing only “To be completed…” stay hidden; replacing that prompt with your content makes the section appear.
+
+Copy this example into your assigned file and replace the illustrative text:
 
 ```markdown
 ## Your research topic
 
 A concise overview of this topic.
 
-### Paper comparison
+### Your failure mechanism
+
+A concise definition of this mechanism.
+
+#### Paper comparison
 
 Your comparison of the reviewed papers.
 
-### Analysis
+#### Analysis
 
 Your synthesis and supporting evidence.
+
+#### Current conclusion
+
+Your current conclusion and remaining uncertainty.
+
+#### Evidence reviewed
+
+The studies supporting this mechanism, with citation numbers.
+
+## References
+
+1. Author. Paper title. Year. Link.
 ```
 
-Direction 4 retains the exact chapter and subsection headings of Zhixuan Li’s report. Other contributors may organise their own headings. Keep `Owner:` and `Status:` at the top of each file, followed by a blank line. Images can be stored in `assets/` and linked using `assets/filename`.
+This creates **your direction → research topic → failure mechanism → four research-note branches**, plus a separate References branch. Click a node with **+** to expand its children; click it again to collapse. Selecting a node opens its text in the right-hand panel. New branches appear after the change reaches `main` and the **Validate and deploy GitHub Pages** workflow succeeds. A saved draft or an unmerged pull request does not update the live website.
+
+If a branch is missing, check that its title uses a heading marker rather than bold text, expand its parent, and check the latest deployment under **Actions**. Refresh the website after deployment.
+
+Keep `Owner:` and `Status:` at the top of each file, followed by a blank line; preserve `Layout:` if present. Images can be stored in `assets/` and linked using `assets/filename`.
 
 ## Giving teammates editing access
 
@@ -116,6 +141,9 @@ Open `http://localhost:8765`. After editing Markdown, run the build again and re
 ```text
 content/                    Six contributor files and the research direction list
 assets/style.css            Shared presentation styles
+assets/workbench.css        Mind-map and reading-panel styles
+assets/home.js              Branch expansion and reading interaction
+scripts/home.py             Builds the map from contributor headings
 scripts/build.py            Generates seven static pages from Markdown
 scripts/check.py            Checks local links, anchors, and required sections
 .github/workflows/pages.yml  Pull request checks and automatic deployment
