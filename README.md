@@ -4,7 +4,7 @@ An interactive research atlas for exploring our team's work on hallucination in 
 
 **[Open the research website](https://sierrali3888.github.io/rag-hallucination-taxonomy/)**
 
-The homepage displays a connected mind map: one central topic branches into six research directions, then into each contributor’s headings. Expand nodes with +, zoom, or drag to explore. Select a node to read its content below on the same page. Subcategories, evidence, comparisons, analysis, and conclusions are left for each contributor to develop. Empty sections are placeholders, not completed findings.
+The homepage displays a connected mind map: one central topic branches into six research directions, then into each contributor’s headings. Select a direction to expand its branches, then select a chapter or research note. One direction is expanded at a time; its content appears in the reading panel beside the map. Short map labels keep the diagram readable, while the reading panel preserves the full source headings. Use All directions to return to the overview, or zoom and drag to explore. Subcategories, evidence, comparisons, analysis, and conclusions are left for each contributor to develop. Empty sections are placeholders, not completed findings.
 
 ## Team responsibilities
 

@@ -40,7 +40,7 @@ def page(title, main):
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{escape(title)} · RAG Research</title><meta name="description" content="A collaborative RAG Hallucination Taxonomy and research outcomes project.">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2313233c'/%3E%3Cpath d='M8 24V16H24V24M16 16V7' fill='none' stroke='%236dd5cb' stroke-width='3'/%3E%3C/svg%3E"><link rel="stylesheet" href="assets/style.css"></head>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2313233c'/%3E%3Cpath d='M8 24V16H24V24M16 16V7' fill='none' stroke='%236dd5cb' stroke-width='3'/%3E%3C/svg%3E"><link rel="stylesheet" href="assets/style.css"><link rel="stylesheet" href="assets/workbench.css"></head>
 <body><a class="skip" href="#main">Skip to content</a><header><a class="brand" href="index.html"><span class="mark">R</span> RAG / RESEARCH ATLAS</a><span class="project">5800 · Collaborative research</span></header>{main}
 <footer><span>RAG Hallucination Taxonomy</span><span>Six research directions · One shared enquiry</span></footer></body></html>'''
 
