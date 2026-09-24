@@ -1,0 +1,32 @@
+[
+  {
+    "id": "conflict-hallucination",
+    "title": "Conflict Hallucination",
+    "member": 1
+  },
+  {
+    "id": "unsupported-baseless-hallucination",
+    "title": "Unsupported / Baseless Hallucination",
+    "member": 2
+  },
+  {
+    "id": "knowledge-source-indexing",
+    "title": "Knowledge Source & Indexing",
+    "member": 3
+  },
+  {
+    "id": "query-retrieval",
+    "title": "Query & Retrieval",
+    "member": 4
+  },
+  {
+    "id": "post-retrieval-context-construction",
+    "title": "Post-Retrieval / Context Construction",
+    "member": 5
+  },
+  {
+    "id": "generation-knowledge-utilisation",
+    "title": "Generation & Knowledge Utilisation",
+    "member": 6
+  }
+]
