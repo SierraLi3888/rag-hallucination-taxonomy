@@ -23,8 +23,8 @@ def render(area):
             subs = re.findall(r'^### (.+)$', '## ' + chapter, re.M)
             if subs != ['Paper comparison', 'Analysis', 'Current conclusion', 'Evidence reviewed']:
                 raise ValueError(f"{area['id']}: retain the report subsection headings")
-    elif headings != SECTIONS:
-        raise ValueError(f"{area['id']}: retain the eight required ## headings in order")
+    elif not headings:
+        raise ValueError(f"{area['id']}: add at least one ## heading")
     md = markdown.Markdown(extensions=['tables', 'fenced_code', 'toc', 'sane_lists'])
     html = md.convert(body)
     return metadata, html, md.toc_tokens
@@ -44,12 +44,8 @@ def page(title, main):
 <body><a class="skip" href="#main">Skip to content</a><header><a class="brand" href="index.html"><span class="mark">R</span> RAG / RESEARCH ATLAS</a><span class="project">5800 · Collaborative research</span></header>{main}
 <footer><span>RAG Hallucination Taxonomy</span><span>Six research directions · One shared enquiry</span></footer></body></html>'''
 
-cards=[]
-for a,meta,_,_ in records:
-    cards.append(f'''<a class="node n{a['member']}" href="{a['id']}.html"><span class="node-top">DIRECTION {a['member']:02d}<span>↗</span></span><h2>{escape(a['title'])}</h2><span class="node-bottom">{escape(meta['Owner'])}<span>{escape(meta['Status'])}</span></span></a>''')
-main='''<main id="main"><div class="intro"><div><p class="eyebrow">THE RESEARCH MAP</p><h1>RAG Hallucination<br><em>Taxonomy</em></h1></div><p class="intro-note">Explore a research direction to read its evidence, comparisons and conclusions.</p></div>
-<section class="map" aria-label="Six research directions"><div class="map-heading"><span>Taxonomy overview</span><span>06 research directions</span></div><div class="tree"><svg class="connections" viewBox="0 0 1000 600" preserveAspectRatio="none" aria-hidden="true"><path d="M500 300 C380 300 420 100 310 100 M500 300 C620 300 580 100 690 100 M500 300 H310 M500 300 H690 M500 300 C380 300 420 500 310 500 M500 300 C620 300 580 500 690 500"/></svg><div class="root"><span>SHARED RESEARCH TOPIC</span><strong>RAG Hallucination</strong></div><div class="branches">'''+''.join(cards)+'''</div></div><div class="map-note">Research framework · Subcategories and findings will be developed by the assigned members.</div></section><p class="scope-note">The six branches organise team responsibilities. Their placement does not imply a causal sequence or a final classification.</p></main>'''
-(OUT/'index.html').write_text(page('Taxonomy overview',main))
+from home import render_home, branch_tokens
+(OUT/'index.html').write_text(page('Taxonomy overview',render_home(records, os.environ.get('GITHUB_REPOSITORY',''))))
 
 def child_links(tokens, depth=0):
     return ''.join(f'<li><a href="#{escape(t["id"])}">{t["name"]}</a>'+ ('<ul>'+child_links(t['children'],depth+1)+'</ul>' if t['children'] else '')+'</li>' for t in tokens)
@@ -58,7 +54,7 @@ repo=os.environ.get('GITHUB_REPOSITORY','')
 for a,meta,body,tokens in records:
     nav=''.join(f'<a {"aria-current=\"page\"" if b["id"]==a["id"] else ""} href="{b["id"]}.html"><span>{b["member"]:02d}</span>{escape(b["title"])}</a>' for b in AREAS)
     toc=''.join(f'<a href="#{t["id"]}">{t["name"]}</a>' for t in tokens)
-    children=tokens[1]['children']
+    children=branch_tokens(body,tokens)
     sub='<ul class="subtree">'+child_links(children)+'</ul>' if children else '<p class="empty">No subcategories added yet.<br>The assigned member will define this branch.</p>'
     if meta.get('Layout') == 'report':
         sub = ''.join('<details class="report-branch"><summary>' + escape(t['name']) + '</summary><a href="#' + escape(t['id']) + '">Read section</a><ul class="subtree">' + child_links(t['children']) + '</ul></details>' for t in tokens if t['name'] != 'References')

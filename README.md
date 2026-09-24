@@ -4,7 +4,7 @@ An interactive research atlas for exploring our team's work on hallucination in 
 
 **[Open the research website](https://sierrali3888.github.io/rag-hallucination-taxonomy/)**
 
-Select one of the six research directions on the homepage to view its research outcomes. Subcategories, evidence, comparisons, analysis, and conclusions are left for each contributor to develop. Empty sections are placeholders, not completed findings.
+The homepage displays a connected mind map: one central topic branches into six research directions, then into each contributor’s headings. Expand nodes with +, zoom, or drag to explore. Select a node to read its content below on the same page. Subcategories, evidence, comparisons, analysis, and conclusions are left for each contributor to develop. Empty sections are placeholders, not completed findings.
 
 ## Team responsibilities
 
@@ -23,7 +23,7 @@ The six branches organise team responsibilities. Their placement does not imply 
 
 1. Open your research page on the website and select **Edit this research on GitHub**, or open your content file from the table above and click the pencil icon. Sign in to your GitHub account if prompted.
 2. Check the `Owner:` line and update `Status:` as appropriate: `Not started`, `In progress`, or `Ready for review`. Keep both lines and the blank line after them.
-3. Replace the “To be completed…” prompts with your research. For the blank templates, keep the eight `##` section headings unchanged and in their original order. Direction 4 instead follows the supplied report: seven chapter headings, each containing Paper comparison, Analysis, Current conclusion, and Evidence reviewed, followed by a separate References section.
+3. Replace the “To be completed…” prompts with your research. The eight template sections are a starting point. Add or edit `##`, `###`, and `####` headings to create branches automatically; ordinary paragraphs update node content. Empty template sections remain hidden from the map. Direction 4 instead follows the supplied report: seven chapter headings, each containing Paper comparison, Analysis, Current conclusion, and Evidence reviewed, followed by a separate References section.
 4. Select **Commit changes…**, describe your contribution, and choose **Create a new branch for this commit and start a pull request**. Ask a teammate to review the proposed changes.
 5. After the checks pass and the pull request is merged into `main`, GitHub automatically updates the website. Allow a few minutes, then refresh your research page.
 
@@ -44,23 +44,33 @@ The blank contributor templates contain these eight sections:
 
 Direction 4 uses `Layout: report` in its metadata. Its `##` chapter headings and `###` subsection headings generate the expandable branch navigation directly. Preserve the report headings when editing this file.
 
-### Adding subcategories
+### Automatic mind-map branches
 
-Under **Subcategories or Failure Modes**, add a `###` heading for each research-supported subcategory and a `####` heading for a nested category. The website automatically creates clickable branch links to these headings. Subheadings in the other sections are not treated as taxonomy nodes.
+Each contributor edits only their own file in `content/`:
 
-The following illustrates the Markdown format only; it does not prescribe a taxonomy category:
+- `## Heading` creates a branch below your research direction.
+- `### Heading` creates a child branch; `#### Heading` creates the next level.
+- Paragraphs, lists, and tables beneath a heading become that node’s research content.
+- Empty default placeholders do not create branches. Add content or a child heading to make the section appear.
+- Save or merge into `main`; the automatic deployment rebuilds the diagram from the latest files.
+
+For example (illustrative headings only):
 
 ```markdown
-### Your evidence-based subcategory title
+## Your research topic
 
-Add the definition, supporting evidence, analysis, and references here.
+A concise overview of this topic.
 
-#### Your nested subcategory title
+### Paper comparison
 
-Add the research outcomes for this node here.
+Your comparison of the reviewed papers.
+
+### Analysis
+
+Your synthesis and supporting evidence.
 ```
 
-Standard Markdown paragraphs, lists, links, quotations, tables, code blocks, and images are supported. Place images in `assets/` and link to them using `assets/filename`.
+Direction 4 retains the exact chapter and subsection headings of Zhixuan Li’s report. Other contributors may organise their own headings. Keep `Owner:` and `Status:` at the top of each file, followed by a blank line. Images can be stored in `assets/` and linked using `assets/filename`.
 
 ## Giving teammates editing access
 

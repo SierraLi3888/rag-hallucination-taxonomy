@@ -15,7 +15,7 @@ class Document(HTMLParser):
             assert a['id'] not in self.ids, f"Duplicate id: {a['id']}"
             self.ids.add(a['id'])
         if tag=='h2': self.h2+=1
-        if tag=='a' and 'node' in a.get('class','').split(): self.nodes+=1
+        if tag=='section' and 'home-panel' in a.get('class','').split(): self.nodes+=1
         for key in ('href','src'):
             if key in a: self.links.append(a[key])
 docs={p.name:Document(p) for p in OUT.glob('*.html')}
