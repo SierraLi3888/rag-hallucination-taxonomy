@@ -24,13 +24,13 @@ def render(area):
             if subs != ['Paper comparison', 'Analysis', 'Current conclusion', 'Evidence reviewed']:
                 raise ValueError(f"{area['id']}: retain the report subsection headings")
     elif metadata.get('Layout') == 'stage-review':
-        expected = ['5.1 Stage Role and Boundary', '5.2 Major Failure Mechanisms', '5.3 Comparison of Existing Literature', '5.4 Cross-Stage Effects and Hallucination Manifestations', '5.5 Section Conclusion', 'References']
+        expected = ['4.1 Stage Role and Boundary', '4.2 Major Failure Mechanisms', '4.3 Comparison of Existing Literature', '4.4 Cross-Stage Effects and Hallucination Manifestations', '4.5 Section Conclusion', 'References']
         if headings != expected:
-            raise ValueError(f"{area['id']}: preserve the agreed Section 5 structure")
-        mechanisms = re.findall(r'^### (5\.2\.\d+ .+)$', body, re.M)
+            raise ValueError(f"{area['id']}: preserve the agreed Section 4 structure")
+        mechanisms = re.findall(r'^### (4\.2\.\d+ .+)$', body, re.M)
         if len(mechanisms) != 7:
             raise ValueError(f"{area['id']}: expected seven failure mechanisms")
-        comparison = body.split('## 5.3 ', 1)[1].split('## 5.4 ', 1)[0]
+        comparison = body.split('## 4.3 ', 1)[1].split('## 4.4 ', 1)[0]
         for theme in re.split(r'^### ', comparison, flags=re.M)[1:]:
             if re.findall(r'^#### (.+)$', theme, re.M) != ['Paper comparison', 'Analysis', 'Current conclusion', 'Evidence reviewed']:
                 raise ValueError(f"{area['id']}: incomplete literature comparison")

@@ -6,7 +6,7 @@ Layout: stage-review
 
 **Reviewed corpus: 25 papers.** The synthesis separates upstream failure evidence, downstream output experiments, and diagnostic studies. Retrieval failure is a contributing cause, not a guarantee of hallucination.
 
-## 5.1 Stage Role and Boundary
+## 4.1 Stage Role and Boundary
 
 This stage translates an information need into searches and selects evidence for generation. Its causal role is to determine **which entities, conditions and facts the answer can be grounded in**.
 
@@ -14,11 +14,11 @@ RAGTruth identifies unsupported or contradictory output [23]; RAGChecker and Leu
 
 **Boundary:** evidence absent from the source/index belongs upstream; evidence lost during context construction belongs downstream. Repeating a false source can be factually wrong while faithful to that source. The pathways below therefore distinguish evidence acquisition from how the generator uses it.
 
-## 5.2 Major Failure Mechanisms
+## 4.2 Major Failure Mechanisms
 
 The seven mechanisms can overlap. Missing evidence describes an outcome; mismatch, ranking and broken dependencies can explain how it arose. False premises are treated explicitly within query validity, rather than conflated with ambiguity.
 
-### 5.2.1 Ambiguous or Incomplete Queries
+### 4.2.1 Ambiguous or Incomplete Queries
 
 **Paper comparison.** CondAmbigQA studies missing conditions; AmbigDocs examines same-name entities; Tree of Clarifications explores alternative interpretations [3–5]. Qin et al. address a different problem: false premises [6].
 
@@ -28,7 +28,7 @@ The seven mechanisms can overlap. Missing evidence describes an outcome; mismatc
 
 **Evidence reviewed.** Conditional-answer evaluation [3]; entity-merging output categories [4]; clarification interventions [5]; premise verification [6]. Watson et al. provide observational query-risk evidence, not a RAG causal experiment [1].
 
-### 5.2.2 Query Reformulation Problems
+### 4.2.2 Query Reformulation Problems
 
 **Paper comparison.** Abe et al. examine expansion failures on unfamiliar and ambiguous queries; Goyal et al. test rewriting under retriever biases; RaDIO studies queries formed during generation [2, 7, 22].
 
@@ -38,7 +38,7 @@ The seven mechanisms can overlap. Missing evidence describes an outcome; mismatc
 
 **Evidence reviewed.** Expansion comparisons across retrievers [2]; controlled bias tests [7]; query/trigger component experiments [22].
 
-### 5.2.3 Query–Document Mismatch
+### 4.2.3 Query–Document Mismatch
 
 **Paper comparison.** Abe et al. show query-dependent retrieval failures; Goyal et al. examine sensitivity to document features; AmbigDocs isolates confusion between same-name entities [2, 7, 4].
 
@@ -48,7 +48,7 @@ The seven mechanisms can overlap. Missing evidence describes an outcome; mismatc
 
 **Evidence reviewed.** Retrieval comparisons [2, 7]; entity-level output analysis [4]. AmbigDocs mainly supplies gold documents, so its reader errors cannot all be assigned to the retriever.
 
-### 5.2.4 Missing Relevant Evidence
+### 4.2.4 Missing Relevant Evidence
 
 **Paper comparison.** Park and Lee manipulate imperfect retrieval; RGB tests rejection when evidence cannot answer; Sufficient Context separates sufficient from insufficient contexts [8, 9, 13]. DRUID tests context utilisation under more realistic retrieved evidence [14].
 
@@ -58,7 +58,7 @@ The seven mechanisms can overlap. Missing evidence describes an outcome; mismatc
 
 **Evidence reviewed.** Unanswerable-context output categories [8, 9]; sufficiency-stratified responses [13]; naturally retrieved context evaluation [14].
 
-### 5.2.5 Irrelevant Retrieved Passages
+### 4.2.5 Irrelevant Retrieved Passages
 
 **Paper comparison.** Yoran et al. examine retrieval-induced errors; Cuconasu et al. distinguish distracting from random documents; Hong et al. test counterfactual noise [10–12].
 
@@ -68,7 +68,7 @@ The seven mechanisms can overlap. Missing evidence describes an outcome; mismatc
 
 **Evidence reviewed.** Retrieval/no-retrieval comparisons and selected-case error analysis [10]; controlled noise types [11]; misleading-context experiments [12].
 
-### 5.2.6 Ranking and Evidence Selection Failures
+### 4.2.6 Ranking and Evidence Selection Failures
 
 **Paper comparison.** SetR examines complementary evidence selection; MultiHop-RAG tests questions requiring multiple facts; RAGChecker separates claim coverage from context quality [16, 17, 24].
 
@@ -78,7 +78,7 @@ The seven mechanisms can overlap. Missing evidence describes an outcome; mismatc
 
 **Evidence reviewed.** Set-selection comparisons [16]; multi-evidence retrieval evaluation [17]; diagnostic metrics [24]. These establish coverage problems more directly than final hallucination causation.
 
-### 5.2.7 Multi-Hop Retrieval Failures
+### 4.2.7 Multi-Hop Retrieval Failures
 
 **Paper comparison.** ChainRAG addresses lost intermediate entities; Q-DREAM examines decomposition and dependencies; MARCH combines ambiguity with multi-hop inference [18–20]. HopRefusalBench tests unanswerable chains and hallucinated completion [21].
 
@@ -88,7 +88,7 @@ The seven mechanisms can overlap. Missing evidence describes an outcome; mismatc
 
 **Evidence reviewed.** Entity-completion and dependency ablations [18, 19]; ambiguity/clarification evaluation [20]; refusal and search-trajectory analysis [21]. The last is a 2026 preprint.
 
-## 5.3 Comparison of Existing Literature
+## 4.3 Comparison of Existing Literature
 
 #### Paper comparison
 
@@ -114,7 +114,7 @@ The strongest synthesis connects **a demonstrated upstream defect with an indepe
 
 All 25 papers inform the section. Tree of Clarifications [5] and RaDIO [22] provide intervention evidence; RAGTruth, RAGChecker and Leung et al. [23–25] ground output definitions and stage attribution. The corpus is a targeted, question-led selection, not an exhaustive systematic review.
 
-## 5.4 Cross-Stage Effects and Hallucination Manifestations
+## 4.4 Cross-Stage Effects and Hallucination Manifestations
 
 | Upstream failure | Evidence reaching generation | Possible hallucination manifestation |
 |---|---|---|
@@ -128,7 +128,7 @@ All 25 papers inform the section. Tree of Clarifications [5] and RaDIO [22] prov
 
 **Evidence reviewed.** The comparison draws on entity/premise studies [4, 6], imperfect-context experiments [8–15], multi-hop analysis [18–21] and stage diagnostics [24, 25]. If the selected evidence was sufficient but later compressed incorrectly, the primary loss belongs to context construction rather than retrieval.
 
-## 5.5 Section Conclusion
+## 4.5 Section Conclusion
 
 **Query and retrieval failures contribute to hallucination by changing what the answer appears to be supported by.** Three recurring pathways emerge:
 
