@@ -1,4 +1,4 @@
-Owner: Member 1 — name to be added
+Owner: 
 Status: Not started
 
 <!-- Edit only your own file. Keep the eight ## section headings.

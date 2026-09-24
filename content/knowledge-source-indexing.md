@@ -1,4 +1,4 @@
-Owner: Member 3 — name to be added
+Owner: Peiqi Guo
 Status: Not started
 
 <!-- Edit only your own file. Keep the eight ## section headings.
